@@ -1,0 +1,42 @@
+model:
+    arch: siam-diff
+    input_nbr: 9    
+    label_nbr: 2
+data:
+    dataloader: SAR_CD_direct
+    train_split: train
+    val_split: test
+    img_rows: 512
+    img_cols: 512
+    path: data/SAR_CD/RS2
+training:
+#    train_iters: 300000
+    train_epoch: 4000
+    batch_size: 8
+    val_interval: 30
+    n_workers: 8
+    print_interval: 10
+    optimizer:
+        name: 'adam'
+        # name: 'sgd'
+        # lr: 1.0e-2
+        # lr: 5.0e-3
+        # weight_decay: 0.0005
+        # momentum: 0.99
+
+    loss:
+        name: 'cross_entropy_mask'
+        weight: [0.01, 0.99]
+        # name: 'focal_loss_2d'
+        # alpha: 1
+        # gamma: 1
+        # reduction: 'mean'
+    lr_schedule: 
+        name: 'constant_lr'
+        # name: 'poly_lr_chen'
+        # max_iter: 3200
+    # resume: runs/HRS_SAR_seg_chen/82684/deeplabv3_os16_MG_plus_HRS_SAR_seg_best_model.pkl
+    # resume: runs/siam-diff_cross_entropy_mask_sgd_poly_lr_chen_15//siam-diff_SAR_CD_intensity_best_model.pkl
+    # resume: runs/siam-diff_cross_entropy_mask_adam_constant_lr_4/siam-diff_SAR_CD_intensity_last_model.pkl
+    clip: False
+    resume:

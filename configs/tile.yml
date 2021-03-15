@@ -1,0 +1,48 @@
+model:
+    arch: clipped_resnet18
+    in_channels: 6    
+    num_classes: 2
+data:
+    dataloader: SAR_CD_tile_1
+    train_split: train
+    val_split: val
+    test_split: ['test_train', 'test_val']
+    tile_size: 32
+    path: /home/csl/data/SAR_CD/RS2
+    time_shuffle: True
+train:
+    augment: 
+    epoch: 100
+    batch_size: 128
+    val_interval: 60
+    n_workers: 32
+    print_interval: 30
+    optimizer:
+        name: 'adam'
+        # name: 'sgd'
+        # lr: 1.0e-2
+        lr: 1.0e-4
+        # weight_decay: 0.0005
+        # momentum: 0.99
+
+    loss:
+        name: 'cross_entropy'
+        weight: [0.1, 0.9]
+        # name: 'focal_loss_2d'
+        # alpha: 1
+        # gamma: 1
+        # reduction: 'mean'
+    lr: 
+        name: 'constant_lr'
+        # name: 'poly_lr_chen'
+        # max_iter: 3200
+    clip: False
+    resume: 
+test:
+    pth:
+    out_path: 'output'
+    gpu: [0]
+    augments:
+    batch_size: 2
+    n_workers: 2
+    dataset: ['train', 'val']

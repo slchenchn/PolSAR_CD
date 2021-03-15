@@ -1,0 +1,30 @@
+model:
+    # arch: mv3_res50
+    # arch: unet
+    arch: deeplabv3_os16_MG_plus
+data:
+    dataset: HRS_SAR_seg
+    train_split: train
+    val_split: val
+    img_rows: 512
+    img_cols: 512
+    path: dataset/Sar_seg/band3/
+training:
+#    train_iters: 300000
+    train_epoch: 100
+    batch_size: 12
+    val_interval: 10
+    n_workers: 8     
+    print_interval: 10
+    optimizer:
+        name: 'sgd'
+#        lr: 1.0e-3
+        lr: 5.0e-4
+        weight_decay: 0.0005
+        momentum: 0.99
+
+    loss:
+        name: 'cross_entropy'
+        size_average: True
+    lr_schedule:
+    resume: mv3_res50_my_best_model.pkl

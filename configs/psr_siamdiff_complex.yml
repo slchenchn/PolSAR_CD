@@ -1,0 +1,55 @@
+model:
+    arch: csiam-diffv2
+    input_nbr: 6    
+    drop_p: 0
+    # label_nbr: 2
+data:
+    dataloader: PolSAR_CD_base
+    train_split: train
+    val_split: val
+    img_rows: 512
+    img_cols: 512
+    format: complex_vector_6
+    path: /data/csl/SAR_CD/GF3
+    time_shuffle: True
+train:
+    augment: 
+        'hflip': 0.5
+        'vflip': 0.5
+        # 'rotate': 180
+    epoch: 400
+    batch_size: 4
+    val_interval: 30
+    n_workers: 4
+    print_interval: 10
+    optimizer:
+        name: 'sgd'    
+        # name: 'sgd'
+        # lr: 1.0e-2
+        lr: 1.0e-3
+        weight_decay: 1.0e-5
+        momentum: 0.99
+
+    loss:
+        name: 'cross_entropy_mask'
+        weight: [0.02, 0.98]
+        # name: 'focal_loss_2d'
+        # alpha: 1
+        # gamma: 1
+        # reduction: 'mean'
+    lr: 
+        # name: 'constant_lr'
+        name: 'poly_lr_chen'
+        max_iter: 8000
+    # resume: runs/siam-diff_cross_entropy_mask_sgd_poly_lr_chen_15//siam-diff_SAR_CD_intensity_best_model.pkl
+    # resume: runs/fresunet_cross_entropy_mask_adam_constant_lr_1/fresunet_SAR_CD_intensity_last_model.pkl
+    resume: 
+    clip: False
+test:
+    out_path: 'result'
+    pth: 'runs/siam-diff_cross_entropy_mask_sgd_poly_lr_chen_3/siam-diff_PolSAR_CD_base_best_model.pkl'
+    gpu: [0]
+    augments:
+    batch_size: 8
+    n_workers: 8
+    dataset: 'test'

@@ -1,0 +1,25 @@
+model:
+    arch: EffUnet
+data:
+    dataset: HRS_SAR_seg
+    train_split: train
+    val_split: val
+    img_rows: 512
+    img_cols: 512
+    path: dataset/SAR_Seg_/3/band4/
+training:
+    train_epoch: 50
+    batch_size: 24
+    val_interval: 40
+    n_workers: 8
+    print_interval: 10
+    optimizer:
+        name: 'sgd'
+        lr: 5.0e-4
+        weight_decay: 0.0005
+        momentum: 0.99
+    loss:
+        name: 'focal_loss'
+        size_average: True
+    lr_schedule:
+    resume: #runs/EfficientNet_Basic/65068/EffUnet_HRS_SAR_seg_best_model.pkl

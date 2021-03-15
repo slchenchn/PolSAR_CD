@@ -1,0 +1,28 @@
+model:
+    arch: EffUnet
+data:
+    dataset: HRS_SAR_seg
+    train_split: train
+    val_split: val
+    img_rows: 512
+    img_cols: 512
+    path: dataset/Sar_seg/band4/
+training:
+#    train_iters: 300000
+    train_epoch: 40
+    batch_size: 12
+    val_interval: 50
+    n_workers: 8
+    print_interval: 10
+    optimizer:
+        name: 'sgd'
+#        lr: 1.0e-3
+        lr: 1.0e-3
+        weight_decay: 0.0005
+        momentum: 0.99
+
+    loss:
+        name: 'cross_entropy'
+        size_average: True
+    lr_schedule:
+    resume: runs/HRS_SAR_seg_4band/67706/EffUnet_HRS_SAR_seg_best_models.pkl

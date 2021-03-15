@@ -1,0 +1,41 @@
+model:
+    arch: fresunet
+    input_nbr: 6    
+    label_nbr: 2
+data:
+    dataloader: SAR_CD_intensity
+    train_split: train
+    val_split: val
+    img_rows: 512
+    img_cols: 512
+    path: /home/csl/data/SAR_CD/RS2
+train:
+#    train_iters: 300000
+    train_epoch: 1600
+    batch_size: 24
+    val_interval: 30
+    n_workers: 12
+    print_interval: 10
+    optimizer:
+        name: 'adam'
+        # name: 'sgd'
+        # lr: 1.0e-2
+        # lr: 5.0e-3
+        # weight_decay: 0.0005
+        # momentum: 0.99
+
+    loss:
+        name: 'cross_entropy_mask'
+        weight: [0.01, 1.5]
+        # name: 'focal_loss_2d'
+        # alpha: 1
+        # gamma: 1
+        # reduction: 'mean'
+    lr_schedule: 
+        name: 'constant_lr'
+        # name: 'poly_lr_chen'
+        # max_iter: 3200
+    # resume: runs/siam-diff_cross_entropy_mask_sgd_poly_lr_chen_15//siam-diff_SAR_CD_intensity_best_model.pkl
+    # resume: runs/siam-diff_cross_entropy_mask_adam_constant_lr_24/siam-diff_SAR_CD_Hoekman_last_model.pkl
+    clip: False
+    resume: /home/csl/code/PolSAR_CD/runs/fresunet_cross_entropy_mask_adam_constant_lr_1/fresunet_SAR_CD_intensity_last_model.pkl
