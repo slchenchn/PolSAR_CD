@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-03-05
-Last Modified: 2021-03-12
+Last Modified: 2021-03-29
 	content: 
 '''
 import argparse
@@ -44,6 +44,7 @@ class PolSAR_CD_base(data.Dataset):
         self.data_format = data_format
         self.augments = augments
         self.to_tensor = to_tensor
+        self.sensor = root[-3:]
         # self.data_type = data_format
         print(f'split: {split}\n\troot: {root}\n\taugment: {augments}\n\tto tensor: {to_tensor}\n\tdata format: {data_format}')
 
@@ -66,6 +67,7 @@ class PolSAR_CD_base(data.Dataset):
 
     def get_label_and_mask(self, index:int):
         ''' generate label and its mask, in torch.tensor forat '''
+        # print('index: ', index)
         label_path = self.labels_path[index]
         label = lbm.read_change_label_png(label_path)-1
         mask = label<2      # 1 表示存在有效标记，0表示没有标记
@@ -86,11 +88,18 @@ class PolSAR_CD_base(data.Dataset):
         [a_time, b_time] = re.findall(re_exp, label_path)
 
         files_path = []
-        files_path.append(osp.join(label_dir.replace('label', 'data'), a_time, 'C3'))
-        files_path.append(osp.join(label_dir.replace('label', 'data'), b_time, 'C3'))
+        if 's2' in self.data_format:
+            files_path.append(osp.join(label_dir.replace('label', 'data'), a_time, 's2'))
+            files_path.append(osp.join(label_dir.replace('label', 'data'), b_time, 's2'))
+        else:
+            files_path.append(osp.join(label_dir.replace('label', 'data'), a_time, 'C3'))
+            files_path.append(osp.join(label_dir.replace('label', 'data'), b_time, 'C3'))
 
         # get the file data
-        slice_idx = re.search(r'-\d{3}-', label_path)
+        if self.sensor=='GF3':
+            slice_idx = re.search(r'-\d{3}-', label_path)
+        elif self.sensor=='RS2':
+            slice_idx = re.search(r'-\d{4}-', label_path)
         if slice_idx is None:
             raise ValueError('can not find the wave code')
         slice_idx = int(slice_idx.group()[1:-1])
@@ -98,10 +107,45 @@ class PolSAR_CD_base(data.Dataset):
         files = []
         if self.data_format in ('save_space', 'complex_vector_9', 'complex_vector_6'):
             for ii in range(2):
-                files.append(torch.from_numpy(psr.read_c3(osp.join(files_path[ii], str(slice_idx)), out=self.data_format)).type(torch.complex64))
-        elif self.data_format=='s2':
+                psr_data = psr.read_c3(osp.join(files_path[ii], str(slice_idx)), out=self.data_format)
+                mean = np.load(osp.join(files_path[ii], self.data_format+'_mean.npy'))
+                std = np.load(osp.join(files_path[ii], self.data_format+'_std.npy'))
+                _, _, psr_data = psr.norm_3_sigma(psr_data, mean, std)
+                files.append(torch.from_numpy(psr_data).type(torch.complex64))
+
+        elif 'polar' in self.data_format:
+            if 'c3' in self.data_format:
+                # complex vector 6
+                for ii in range(2):
+                    c6 = psr.read_c3(osp.join(files_path[ii], str(slice_idx)), out='complex_vector_6').astype(np.complex64)
+                    mean = np.load(osp.join(files_path[ii], 'complex_vector_6'+'_mean.npy'))
+                    std = np.load(osp.join(files_path[ii], 'complex_vector_6'+'_std.npy'))
+                    _, _, c6 = psr.norm_3_sigma(c6, mean, std)
+                    abs = np.expand_dims(np.abs(c6), axis=0)
+                    agl = np.expand_dims(np.angle(c6), axis=0)
+                    polar = torch.cat((torch.from_numpy(agl),torch.from_numpy(abs)), dim=0)
+                    files.append(polar)
+
+            elif 's2' in self.data_format:
+                # s2 matrix
+                for ii in range(2):
+                    s2 = psr.read_s2(osp.join(files_path[ii], str(slice_idx))).astype(np.complex64)
+                    mean = np.load(osp.join(files_path[ii], 's2_abs_mean.npy'))
+                    std = np.load(osp.join(files_path[ii], 's2_abs_std.npy'))
+                    _, _, s2 = psr.norm_3_sigma(s2, mean, std, type='abs')
+                    abs = np.expand_dims(np.abs(s2), axis=0)
+                    agl = np.expand_dims(np.angle(s2), axis=0)
+                    polar = torch.cat((torch.from_numpy(agl),torch.from_numpy(abs)), dim=0)
+                    files.append(polar)
+
+        elif self.data_format == 's2':
             for ii in range(2):
-                raise NotImplementedError 
+                psr_data = psr.read_s2(osp.join(files_path[ii], str(slice_idx)))
+                mean = np.load(osp.join(files_path[ii], 's2_abs_mean.npy'))
+                std = np.load(osp.join(files_path[ii], 's2_abs_std.npy'))
+                _, _, psr_data = psr.norm_3_sigma(psr_data, mean, std, type='abs')
+                files.append(torch.from_numpy(psr_data).type(torch.complex64))
+
         elif self.data_format=='pauli':
             for ii in range(2):
                 files.append(psr.read_bmp(osp.join(files_path[ii], str(slice_idx))))
@@ -111,6 +155,9 @@ class PolSAR_CD_base(data.Dataset):
             else:
                 for ii in range(2):
                     files[ii] = files[ii].permute(2, 0, 1)
+        elif self.data_format=='hoekman':
+            for ii in range(2):
+                files.append(torch.from_numpy(np.load(osp.join(files_path[ii], str(slice_idx), 'normed.npy').replace('C3', 'Hoekman'))))
         else:
             raise NotImplementedError
         return files

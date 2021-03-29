@@ -1,7 +1,8 @@
 model:
-    arch: siam-diffv2
-    input_nbr: 3    
+    arch: csiam-diffv2
+    input_nbr: 6    
     drop_p: 0
+    channel_scale: 0.25
     # label_nbr: 2
 data:
     dataloader: PolSAR_CD_base
@@ -9,14 +10,13 @@ data:
     val_split: val
     img_rows: 512
     img_cols: 512
-    format: pauli
-    path: /data/csl/SAR_CD/GF3
-    # time_shuffle: True
+    format: complex_vector_6
+    path: /data/csl/SAR_CD/RS2
 train:
     augment: 
         'hflip': 0.5
         'vflip': 0.5
-        'rotate': 180       
+        # 'rotate': 180
     epoch: 400
     batch_size: 4
     val_interval: 30
@@ -25,14 +25,14 @@ train:
     optimizer:
         name: 'sgd'    
         # name: 'sgd'
-        # lr: 1.0e-2
         lr: 1.0e-3
+        # lr: 5.0e-4
         weight_decay: 1.0e-5
-        momentum: 0.99
+        momentum: 0.9
 
     loss:
         name: 'cross_entropy_mask'
-        weight: [0.02, 0.98]
+        weight: [0.1, 0.9]
         # name: 'focal_loss_2d'
         # alpha: 1
         # gamma: 1
@@ -47,9 +47,9 @@ train:
     clip: False
 test:
     out_path: 'result'
-    pth: 'runs/siam-diffv2_cross_entropy_mask_sgd_poly_lr_chen_9/siam-diffv2_PolSAR_CD_base_best_model.pkl'
+    pth: 'runs/siam-diff_cross_entropy_mask_sgd_poly_lr_chen_3/siam-diff_PolSAR_CD_base_best_model.pkl'
     gpu: [0]
     augments:
-    batch_size: 1
-    n_workers: 1
+    batch_size: 8
+    n_workers: 8
     dataset: 'test'

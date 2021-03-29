@@ -10,8 +10,7 @@ data:
     img_rows: 512
     img_cols: 512
     format: pauli
-    path: /data/csl/SAR_CD/GF3
-    # time_shuffle: True
+    path: /data/csl/SAR_CD/RS2
 train:
     augment: 
         'hflip': 0.5
@@ -32,7 +31,7 @@ train:
 
     loss:
         name: 'cross_entropy_mask'
-        weight: [0.02, 0.98]
+        weight: [0.1, 0.9]
         # name: 'focal_loss_2d'
         # alpha: 1
         # gamma: 1

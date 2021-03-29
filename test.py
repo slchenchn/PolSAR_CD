@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-03-06
+Last Modified: 2021-03-27
 '''
 import os.path as osp
 import matplotlib.pyplot as plt
@@ -107,7 +107,7 @@ def test(cfg, logger, run_id):
 
 
 if __name__=='__main__':
-    cfg = args.get_argparser('configs/psr_siamdiff_pauli.yml')
+    cfg = args.get_argparser('configs/psr_siamdiff_polar.yml')
     del cfg.train
     torch.backends.cudnn.benchmark = True
 

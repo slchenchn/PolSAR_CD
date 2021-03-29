@@ -1,14 +1,16 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-03-12
-Last Modified: 2021-03-15
+Last Modified: 2021-03-25
 	content: 
 '''
 # 2020-10-16 将softmax层移除，因为ptorch里面的计算交叉熵的函数内部已经集成了softmax
 # 统一设置所有的 drop out 概率
 # 将所有的网络层改为复数, batchnorm 先设置为 naive 形式的，并将最后的输出设置为原输出的模，因为这样才能用交叉熵
 # 如果将复数张量和实数张量进行 cat，后续的自动求导会出问题，最新的pytorch已经解决了，但是我用的这个版本还没
-# 将反卷积改成双线性上采用
+# 将反卷积改成双线性上采样
+# 在网络的最开始添加 BN 层
+
 
 # Rodrigo Caye Daudt
 # https://rcdaudt.github.io/
@@ -28,6 +30,8 @@ class complex_SiamUnet_diffv2(nn.Module):
         super().__init__()
 
         self.input_nbr = input_nbr
+
+        self.bn0 = NaiveComplexBatchNorm2d(input_nbr)
 
         self.conv11 = ComplexConv2d(input_nbr, int(16*channel_scale), kernel_size=3, padding=1)
         self.bn11 = NaiveComplexBatchNorm2d(int(16*channel_scale))
@@ -105,6 +109,11 @@ class complex_SiamUnet_diffv2(nn.Module):
 
 
         """Forward method."""
+        # 加上一个 BN 层
+        # start = self.bn0(torch.cat((x1, x2), dim=0))
+        # x1 = start[:x1.shape[0], :, :, :]
+        # x2 = start[x1.shape[0]:, :, :, :]
+
         # Stage 1
         x11 = self.do11(complex_relu(self.bn11(self.conv11(x1))))
         x12_1 = self.do12(complex_relu(self.bn12(self.conv12(x11))))
@@ -179,6 +188,6 @@ class complex_SiamUnet_diffv2(nn.Module):
         x12d = self.do12d(complex_relu(self.bn12d(self.conv12d(x1d))))
         x11d = self.conv11d(x12d)
 
-        return x11d.abs()
+        return x11d.real
         # return self.sm(x11d)
 

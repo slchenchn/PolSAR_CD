@@ -119,7 +119,7 @@ def train(cfg, writer, logger):
     model = get_model(cfg.model, 2).to(device)
     input_size = (cfg.model.input_nbr, 512, 512)
     logger.info(f"Using Model: {cfg.model.arch}")
-    # logger.info(f'model summary: {summary(model, input_size=(input_size, input_size), is_complex=False)}')
+    # logger.info(f'model summary: {summary(model, input_size=(input_size, input_size), is_complex=True)}')
     model = torch.nn.DataParallel(model, device_ids=cfg.gpu)      #自动多卡运行，这个好用
     
     # Setup optimizer, lr_scheduler and loss function
@@ -313,12 +313,12 @@ def train(cfg, writer, logger):
 
 
 if __name__ == "__main__":
-    cfg = args.get_argparser('configs/psr_siamdiff_complex_s2.yml')
+    cfg = args.get_argparser('configs/psr_siamdiff_polar_s2.yml')
     del cfg.test
     torch.backends.cudnn.benchmark = True
     
     # generate work dir
-    run_id = osp.join(r'runs', cfg.model.arch + '_' + cfg.train.loss.name + '_' + cfg.train.optimizer.name)
+    run_id = osp.join(r'runs', cfg.model.arch + '_' + cfg.train.loss.name + '_' + cfg.train.optimizer.name + '_' + cfg.train.lr.name)
     run_id = utils.get_work_dir(run_id)
     writer = SummaryWriter(log_dir=run_id)
     config_fig = types.dict2fig(cfg.to_flatten_dict())

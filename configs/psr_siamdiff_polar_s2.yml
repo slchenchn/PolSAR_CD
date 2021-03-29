@@ -1,7 +1,9 @@
+# data in polar coordinate
 model:
-    arch: csiam-diffv2
-    input_nbr: 6    
+    arch: surreal_siam_diff3
+    input_nbr: 4
     drop_p: 0
+    # channel_scale: 0.25
     # label_nbr: 2
 data:
     dataloader: PolSAR_CD_base
@@ -9,7 +11,7 @@ data:
     val_split: val
     img_rows: 512
     img_cols: 512
-    format: complex_vector_6
+    format: polar_s2
     path: /data/csl/SAR_CD/GF3
     time_shuffle: True
 train:
@@ -25,10 +27,10 @@ train:
     optimizer:
         name: 'sgd'    
         # name: 'sgd'
-        # lr: 1.0e-2
         lr: 1.0e-3
+        # lr: 5.0e-4
         weight_decay: 1.0e-5
-        momentum: 0.99
+        momentum: 0.9
 
     loss:
         name: 'cross_entropy_mask'
@@ -47,7 +49,7 @@ train:
     clip: False
 test:
     out_path: 'result'
-    pth: 'runs/siam-diff_cross_entropy_mask_sgd_poly_lr_chen_3/siam-diff_PolSAR_CD_base_best_model.pkl'
+    pth: 'runs/surreal_siam_diff3_cross_entropy_mask_sgd_poly_lr_chen_0/surreal_siam_diff3_PolSAR_CD_base_best_model.pkl'
     gpu: [0]
     augments:
     batch_size: 8
