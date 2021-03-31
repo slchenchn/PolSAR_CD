@@ -107,7 +107,7 @@ def test(cfg, logger, run_id):
 
 
 if __name__=='__main__':
-    cfg = args.get_argparser('configs/psr_siamdiff_polar.yml')
+    cfg = args.get_argparser('configs/psr_siamdiff_complex_s2.yml')
     del cfg.train
     torch.backends.cudnn.benchmark = True
 

@@ -2,7 +2,6 @@ data
 result
 runs
 tmp
-.gitigore
 .vscode
 .ipynb_checkpoints
 ptsemseg/models/imagenet

@@ -318,7 +318,7 @@ if __name__ == "__main__":
     torch.backends.cudnn.benchmark = True
     
     # generate work dir
-    run_id = osp.join(r'runs', cfg.model.arch + '_' + cfg.train.loss.name + '_' + cfg.train.optimizer.name + '_' + cfg.train.lr.name)
+    run_id = osp.join(r'runs', cfg.model.arch + '_' + cfg.train.loss.name + '_' + cfg.train.optimizer.name)
     run_id = utils.get_work_dir(run_id)
     writer = SummaryWriter(log_dir=run_id)
     config_fig = types.dict2fig(cfg.to_flatten_dict())

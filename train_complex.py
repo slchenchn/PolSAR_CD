@@ -119,7 +119,7 @@ def train(cfg, writer, logger):
     model = get_model(cfg.model, 2).to(device)
     input_size = (cfg.model.input_nbr, 512, 512)
     logger.info(f"Using Model: {cfg.model.arch}")
-    logger.info(f'model summary: {summary(model, input_size=(input_size, input_size), is_complex=False)}')
+    logger.info(f'model summary: {summary(model, input_size=(input_size, input_size), is_complex=True)}')
     model = torch.nn.DataParallel(model, device_ids=cfg.gpu)      #自动多卡运行，这个好用
     
     # Setup optimizer, lr_scheduler and loss function

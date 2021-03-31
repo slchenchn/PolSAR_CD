@@ -2,7 +2,7 @@ model:
     arch: csiam-diffv2
     input_nbr: 4
     drop_p: 0
-    channel_scale: 0.25
+    channel_scale: 0.5
     # label_nbr: 2
 data:
     dataloader: PolSAR_CD_base
@@ -23,12 +23,12 @@ train:
     n_workers: 4
     print_interval: 10
     optimizer:
-        name: 'adam'    
-        # name: 'sgd'
+        # name: 'adam'    
+        name: 'sgd'
         lr: 1.0e-3
         # lr: 5.0e-4
         weight_decay: 1.0e-5
-        # momentum: 0.9
+        momentum: 0.9
 
     loss:
         name: 'cross_entropy_mask'
@@ -47,7 +47,7 @@ train:
     clip: False
 test:
     out_path: 'result'
-    pth: 'runs/csiam-diffv2_cross_entropy_mask_adam_constant_lr_0/csiam-diffv2_PolSAR_CD_base_best_model.pkl'
+    pth: 'runs/csiam-diffv2_cross_entropy_mask_adam_1/csiam-diffv2_PolSAR_CD_base_best_model.pkl'
     gpu: [0]
     augments:
     batch_size: 8

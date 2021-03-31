@@ -1,3 +1,9 @@
+'''
+Author: Shuailin Chen
+Created Date: 2020-11-27
+Last Modified: 2021-03-29
+	content: 
+'''
 """
 Misc Utility functions
 """
@@ -57,6 +63,17 @@ def get_logger(logdir):
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr) 
-    # logger.setLevel(logging.INFO)
+    logger.setLevel(logging.INFO)
     # logging.basicConfig(level=logging.INFO, format='%(message)s')
     return logger
+
+
+if __name__=='__main__':
+    logging.basicConfig(filename='./tmp/a.log', level=logging.INFO)
+    # setattr(logging, loglevel)
+    print('begin')
+    a = 'sdfsdfsafsa\nf'*1000
+    logging.info('hello')
+    logging.info(f'ccccc\nbbbbb\naaaaa{a}')
+    print('end')
+    # logger = logging.getLogger('hello')

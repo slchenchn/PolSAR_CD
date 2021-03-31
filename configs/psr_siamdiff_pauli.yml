@@ -23,12 +23,12 @@ train:
     n_workers: 4
     print_interval: 10
     optimizer:
-        name: 'sgd'    
+        name: 'adam'    
         # name: 'sgd'
         # lr: 1.0e-2
-        lr: 1.0e-3
+        # lr: 1.0e-3
         weight_decay: 1.0e-5
-        momentum: 0.99
+        # momentum: 0.99
 
     loss:
         name: 'cross_entropy_mask'
