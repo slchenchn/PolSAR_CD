@@ -22,5 +22,16 @@ class siam_deeplabv3_diff(nn.Module):
         self.aspp = ASPP_Bottleneck(num_classes=label_nbr)
 
     def forward(self, x1, x2):
-        
+        h, w = x1.shape()[-2:]
+
+        x1 = self.backbone(x1)
+        x2 = self.backbone(x2)
+
+        diff = torch.abs(x1-x2)
+
+        output = self.aspp(diff)
+
+        output = F.upsample(output, size=(h, w), mode='bilinear')
+
+        return output
 

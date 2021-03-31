@@ -1,5 +1,5 @@
 model:
-    arch: csiam-diffv2
+    arch: csiam-diffv3
     input_nbr: 4
     drop_p: 0
     channel_scale: 0.5
