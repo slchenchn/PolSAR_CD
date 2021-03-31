@@ -1,7 +1,7 @@
-data
-result
-runs
-tmp
+data/*
+result/*
+runs/*
+tmp/*
 .vscode
 .ipynb_checkpoints
 ptsemseg/models/imagenet
