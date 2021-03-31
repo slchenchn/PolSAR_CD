@@ -16,10 +16,10 @@ from ptsemseg.models.aspp import ASPP, ASPP_Bottleneck
 class siam_deeplabv3_diff(nn.Module):
     """SiamUnet_diff segmentation network."""
 
-    def __init__(self, input_nbr, label_nbr, drop_p=0.2):
+    def __init__(self, input_nbr, num_classes, drop_p=0.2, pretrained=True):
         super().__init__()
-        self.backbone = ResNet18_OS8()
-        self.aspp = ASPP_Bottleneck(num_classes=label_nbr)
+        self.backbone = ResNet18_OS8(pretrained=pretrained)
+        self.aspp = ASPP_Bottleneck(num_classes=num_classes)
 
     def forward(self, x1, x2):
         h, w = x1.shape()[-2:]

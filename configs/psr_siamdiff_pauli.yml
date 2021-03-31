@@ -1,8 +1,8 @@
 model:
-    arch: siam-diffv2
+    arch: siam_deeplabv3_diff
     input_nbr: 3    
     drop_p: 0
-    # label_nbr: 2
+    pretrained: False
 data:
     dataloader: PolSAR_CD_base
     train_split: train

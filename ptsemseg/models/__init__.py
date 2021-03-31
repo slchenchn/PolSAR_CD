@@ -36,6 +36,7 @@ from siamese.fresunet import *
 from siamese.complex_siamunet_diff import *
 from siamese.siamunet_diffv2 import *
 from siamese.complex_siamunet_diffv2 import *
+from siamese.siam_deeplabv3_diff import *
 from siamese.surreal_siamunet_diff import *
 from siamese.surreal_siamunet_diff2 import *
 from siamese.surreal_siamunet_diff3 import *
@@ -77,7 +78,7 @@ def get_model(model_dict, n_classes=2):
     elif name=="refinenet101":
         model=model(num_classes=n_classes,imagenet=True,pretrained=False,**param_dict)
 
-    elif name=="deeplabv3_os16_MG":
+    elif name in ("deeplabv3_os16_MG", 'siam_deeplabv3_diff'):
         model=model(num_classes=n_classes, **param_dict)
     elif name=="deeplabv3_os16_MG_plus":
         model=model(num_classes=n_classes, **param_dict)
@@ -146,6 +147,7 @@ def _get_model_instance(name):
             'surreal_siam_diff': surReal_SiamUnet_diff,
             'surreal_siam_diff2': surReal_SiamUnet_diff2,
             'surreal_siam_diff3': surReal_SiamUnet_diff3,
+            'siam_deeplabv3_diff': siam_deeplabv3_diff,
         }[name]
     except:
         raise("Model {} not available".format(name))

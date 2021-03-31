@@ -313,7 +313,7 @@ def train(cfg, writer, logger):
 
 
 if __name__ == "__main__":
-    cfg = args.get_argparser('configs/psr_siamdiff_complex_s2.yml')
+    cfg = args.get_argparser('configs/psr_siamdiff_pauli.yml')
     del cfg.test
     torch.backends.cudnn.benchmark = True
     
