@@ -1,6 +1,6 @@
 model:
     arch: siam_deeplabv3_diff
-    input_nbr: 3    
+    input_nbr: 3
     drop_p: 0
     pretrained: False
 data:
@@ -26,7 +26,7 @@ train:
         name: 'adam'    
         # name: 'sgd'
         # lr: 1.0e-2
-        # lr: 1.0e-3
+        lr: 1.0e-3
         weight_decay: 1.0e-5
         # momentum: 0.99
 

@@ -18,11 +18,11 @@ class siam_deeplabv3_diff(nn.Module):
 
     def __init__(self, input_nbr, num_classes, drop_p=0.2, pretrained=True):
         super().__init__()
-        self.backbone = ResNet18_OS8(pretrained=pretrained)
-        self.aspp = ASPP_Bottleneck(num_classes=num_classes)
+        self.backbone = ResNet18_OS8(pretrained=pretrained, input_nbr=input_nbr)
+        self.aspp = ASPP(num_classes=num_classes)
 
     def forward(self, x1, x2):
-        h, w = x1.shape()[-2:]
+        h, w = x1.shape[-2:]
 
         x1 = self.backbone(x1)
         x2 = self.backbone(x2)

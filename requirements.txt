@@ -11,5 +11,5 @@ scikit-image
 albumentations
 imgviz
 tensorboard
-nestargs
 labelme
+torchlars

@@ -33,14 +33,14 @@ import glob
 import natsort
 import re
 import logging
-import nestargs
+from mylib import nestargs
 import matplotlib.pyplot as plt
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
 from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
-from torchsummary import summary
+from torchlars import LARS
 
 from ptsemseg.models import get_model
 from ptsemseg.loss import get_loss_function
@@ -53,6 +53,7 @@ from ptsemseg.optimizers import get_optimizer
 
 from mylib import types
 from mylib import file_utils as fu
+from mylib.torchsummary import summary
 import args
 import utils
 
@@ -125,9 +126,12 @@ def train(cfg, writer, logger):
     # Setup optimizer, lr_scheduler and loss function
     optimizer_cls = get_optimizer(cfg)
     optimizer_params = {k:v for k, v in vars(cfg.train.optimizer).items()
-                        if k != 'name'}
+                        if k not in ('name', 'wrap')}
     optimizer = optimizer_cls(model.parameters(), **optimizer_params)
     logger.info("Using optimizer {}".format(optimizer))
+    if hasattr(cfg.train.optimizer, 'wrap') and  cfg.train.optimizer.wrap=='lars':
+        optimizer = LARS(optimizer=optimizer)
+        logger.info(f'warp optimizer with {cfg.train.optimizer.wrap}')
     scheduler = get_scheduler(optimizer, cfg.train.lr)
     loss_fn = get_loss_function(cfg)
     logger.info(f"Using loss ,{str(cfg.train.loss)}")

@@ -13,7 +13,7 @@ data:
     img_cols: 512
     format: polar_s2
     path: /data/csl/SAR_CD/GF3
-    time_shuffle: True
+    norm: False
 train:
     augment: 
         'hflip': 0.5
@@ -25,9 +25,10 @@ train:
     n_workers: 4
     print_interval: 10
     optimizer:
+        # wrap: 'lars'
         name: 'adam'    
         # name: 'sgd'
-        # lr: 1.0e-3
+        lr: 1.0e-3
         # lr: 5.0e-4
         weight_decay: 1.0e-5
         # momentum: 0.9

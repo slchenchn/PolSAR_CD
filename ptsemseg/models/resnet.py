@@ -5,7 +5,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.models as models
+# import torchvision.models as models
+from mylib import my_resnet as models
 
 
 def make_layer(block, in_channels, channels, num_blocks, stride=1, dilation=2):
@@ -93,11 +94,11 @@ class Bottleneck(nn.Module):
         return out
 
 class ResNet_Bottleneck_OS16(nn.Module):
-    def __init__(self, num_layers):
+    def __init__(self, num_layers, input_nbr=3):
         super(ResNet_Bottleneck_OS16, self).__init__()
 
         if num_layers == 50:
-            resnet = models.resnet50()
+            resnet = models.resnet50(input_nbr=input_nbr)
             a=torch.load("/home/ali/.torch/models/50_imagenet.pth.tar")
             # load pretrained model:
             resnet.load_state_dict(torch.load("/home/ali/.torch/models/50_imagenet.pth.tar"))
@@ -108,7 +109,7 @@ class ResNet_Bottleneck_OS16(nn.Module):
 
             print ("pretrained resnet, 50")
         elif num_layers == 101:
-            resnet = models.resnet101()
+            resnet = models.resnet101(input_nbr=input_nbr)
             # load pretrained model:
             resnet.load_state_dict(torch.load("/home/ali/.torch/models/101_imagenet.pth.tar"))
             # remove fully connected layer, avg pool and layer5:
@@ -116,7 +117,7 @@ class ResNet_Bottleneck_OS16(nn.Module):
 
             print ("pretrained resnet, 101")
         elif num_layers == 152:
-            resnet = models.resnet152()
+            resnet = models.resnet152(input_nbr=input_nbr)
             # load pretrained model:
             resnet.load_state_dict(torch.load("pretrained_models/resnet/resnet152-b121ed2d.pth"))
             # remove fully connected layer, avg pool and layer5:
@@ -144,11 +145,11 @@ class ResNet_Bottleneck_OS16(nn.Module):
         return output
 
 class ResNet_BasicBlock_OS16(nn.Module):
-    def __init__(self, num_layers, pretrained=True):
+    def __init__(self, num_layers, pretrained=True, input_nbr=3):
         super(ResNet_BasicBlock_OS16, self).__init__()
 
         if num_layers == 18:
-            resnet = models.resnet18()
+            resnet = models.resnet18(input_nbr=input_nbr)
             # load pretrained model:
             if pretrained:
                 resnet.load_state_dict(torch.load("/root/deeplabv3/pretrained_models/resnet/resnet18-5c106cde.pth"))
@@ -158,7 +159,7 @@ class ResNet_BasicBlock_OS16(nn.Module):
 
             num_blocks = 2
         elif num_layers == 34:
-            resnet = models.resnet34()
+            resnet = models.resnet34(input_nbr=input_nbr)
             # load pretrained model:
             if pretrained:
                 resnet.load_state_dict(torch.load("/root/deeplabv3/pretrained_models/resnet/resnet34-333f7ec4.pth"))
@@ -183,11 +184,11 @@ class ResNet_BasicBlock_OS16(nn.Module):
         return output
 
 class ResNet_BasicBlock_OS8(nn.Module):
-    def __init__(self, num_layers, pretrained=True):
-        super(ResNet_BasicBlock_OS8, self).__init__()
+    def __init__(self, num_layers, pretrained=True, input_nbr=3):
+        super().__init__()
 
         if num_layers == 18:
-            resnet = models.resnet18()
+            resnet = models.resnet18(input_nbr=input_nbr)
             # load pretrained model:
             if pretrained:
                 resnet.load_state_dict(torch.load("/root/deeplabv3/pretrained_models/resnet/resnet18-5c106cde.pth"))
@@ -198,7 +199,7 @@ class ResNet_BasicBlock_OS8(nn.Module):
             num_blocks_layer_4 = 2
             num_blocks_layer_5 = 2
         elif num_layers == 34:
-            resnet = models.resnet34()
+            resnet = models.resnet34(input_nbr=input_nbr)
             # load pretrained model:
             if pretrained:
                 resnet.load_state_dict(torch.load("/root/deeplabv3/pretrained_models/resnet/resnet34-333f7ec4.pth"))
@@ -211,7 +212,7 @@ class ResNet_BasicBlock_OS8(nn.Module):
         else:
             raise Exception("num_layers must be in {18, 34}!")
 
-
+        self.layer4 = make_layer(BasicBlock, in_channels=128, channels=256, num_blocks=num_blocks_layer_4, stride=1, dilation=2)
         self.layer5 = make_layer(BasicBlock, in_channels=256, channels=512, num_blocks=num_blocks_layer_5, stride=1, dilation=4)
 
     def forward(self, x):
@@ -225,23 +226,23 @@ class ResNet_BasicBlock_OS8(nn.Module):
 
         return output
 
-def ResNet18_OS16(pretrained=True):
-    return ResNet_BasicBlock_OS16(num_layers=18, pretrained=pretrained)
+def ResNet18_OS16(pretrained=True, input_nbr=3):
+    return ResNet_BasicBlock_OS16(num_layers=18, pretrained=pretrained, input_nbr=input_nbr)
 
-def ResNet34_OS16(pretrained=True):
-    return ResNet_BasicBlock_OS16(num_layers=34, pretrained=pretrained)
+def ResNet34_OS16(pretrained=True, input_nbr=3):
+    return ResNet_BasicBlock_OS16(num_layers=34, pretrained=pretrained, input_nbr=input_nbr)
 
-def ResNet50_OS16(pretrained=True):
-    return ResNet_Bottleneck_OS16(num_layers=50, pretrained=pretrained)
+def ResNet50_OS16(pretrained=True, input_nbr=3):
+    return ResNet_Bottleneck_OS16(num_layers=50, pretrained=pretrained, input_nbr=input_nbr)
 
-def ResNet101_OS16(pretrained=True):
-    return ResNet_Bottleneck_OS16(num_layers=101, pretrained=pretrained)
+def ResNet101_OS16(pretrained=True, input_nbr=3):
+    return ResNet_Bottleneck_OS16(num_layers=101, pretrained=pretrained, input_nbr=input_nbr)
 
-def ResNet152_OS16(pretrained=True):
-    return ResNet_Bottleneck_OS16(num_layers=152, pretrained=pretrained)
+def ResNet152_OS16(pretrained=True, input_nbr=3):
+    return ResNet_Bottleneck_OS16(num_layers=152, pretrained=pretrained, input_nbr=input_nbr)
 
-def ResNet18_OS8(pretrained=True):
-    return ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained)
+def ResNet18_OS8(pretrained=True, input_nbr=3):
+    return ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr)
 
-def ResNet34_OS8(pretrained=True):
-    return ResNet_BasicBlock_OS8(num_layers=34, pretrained=pretrained)
+def ResNet34_OS8(pretrained=True, input_nbr=3):
+    return ResNet_BasicBlock_OS8(num_layers=34, pretrained=pretrained, input_nbr=input_nbr)

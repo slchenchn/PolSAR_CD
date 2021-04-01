@@ -36,6 +36,7 @@ class PolSAR_CD_base(data.Dataset):
         augments=None,
         to_tensor = True,
         data_format = 'pauli',
+        norm=True
         # data_type = 'pauli'
         ):
         super().__init__()
@@ -45,6 +46,7 @@ class PolSAR_CD_base(data.Dataset):
         self.augments = augments
         self.to_tensor = to_tensor
         self.sensor = root[-3:]
+        self.norm = norm
         # self.data_type = data_format
         print(f'split: {split}\n\troot: {root}\n\taugment: {augments}\n\tto tensor: {to_tensor}\n\tdata format: {data_format}')
 
@@ -108,9 +110,10 @@ class PolSAR_CD_base(data.Dataset):
         if self.data_format in ('save_space', 'complex_vector_9', 'complex_vector_6'):
             for ii in range(2):
                 psr_data = psr.read_c3(osp.join(files_path[ii], str(slice_idx)), out=self.data_format)
-                mean = np.load(osp.join(files_path[ii], self.data_format+'_mean.npy'))
-                std = np.load(osp.join(files_path[ii], self.data_format+'_std.npy'))
-                _, _, psr_data = psr.norm_3_sigma(psr_data, mean, std)
+                if self.norm:
+                    mean = np.load(osp.join(files_path[ii], self.data_format+'_mean.npy'))
+                    std = np.load(osp.join(files_path[ii], self.data_format+'_std.npy'))
+                    _, _, psr_data = psr.norm_3_sigma(psr_data, mean, std)
                 files.append(torch.from_numpy(psr_data).type(torch.complex64))
 
         elif 'polar' in self.data_format:
@@ -118,9 +121,10 @@ class PolSAR_CD_base(data.Dataset):
                 # complex vector 6
                 for ii in range(2):
                     c6 = psr.read_c3(osp.join(files_path[ii], str(slice_idx)), out='complex_vector_6').astype(np.complex64)
-                    mean = np.load(osp.join(files_path[ii], 'complex_vector_6'+'_mean.npy'))
-                    std = np.load(osp.join(files_path[ii], 'complex_vector_6'+'_std.npy'))
-                    _, _, c6 = psr.norm_3_sigma(c6, mean, std)
+                    if self.norm:
+                        mean = np.load(osp.join(files_path[ii], 'complex_vector_6'+'_mean.npy'))
+                        std = np.load(osp.join(files_path[ii], 'complex_vector_6'+'_std.npy'))
+                        _, _, c6 = psr.norm_3_sigma(c6, mean, std)
                     abs = np.expand_dims(np.abs(c6), axis=0)
                     agl = np.expand_dims(np.angle(c6), axis=0)
                     polar = torch.cat((torch.from_numpy(agl),torch.from_numpy(abs)), dim=0)
@@ -130,9 +134,10 @@ class PolSAR_CD_base(data.Dataset):
                 # s2 matrix
                 for ii in range(2):
                     s2 = psr.read_s2(osp.join(files_path[ii], str(slice_idx))).astype(np.complex64)
-                    mean = np.load(osp.join(files_path[ii], 's2_abs_mean.npy'))
-                    std = np.load(osp.join(files_path[ii], 's2_abs_std.npy'))
-                    _, _, s2 = psr.norm_3_sigma(s2, mean, std, type='abs')
+                    if self.norm:
+                        mean = np.load(osp.join(files_path[ii], 's2_abs_mean.npy'))
+                        std = np.load(osp.join(files_path[ii], 's2_abs_std.npy'))
+                        _, _, s2 = psr.norm_3_sigma(s2, mean, std, type='abs')
                     abs = np.expand_dims(np.abs(s2), axis=0)
                     agl = np.expand_dims(np.angle(s2), axis=0)
                     polar = torch.cat((torch.from_numpy(agl),torch.from_numpy(abs)), dim=0)
@@ -141,9 +146,10 @@ class PolSAR_CD_base(data.Dataset):
         elif self.data_format == 's2':
             for ii in range(2):
                 psr_data = psr.read_s2(osp.join(files_path[ii], str(slice_idx)))
-                mean = np.load(osp.join(files_path[ii], 's2_abs_mean.npy'))
-                std = np.load(osp.join(files_path[ii], 's2_abs_std.npy'))
-                _, _, psr_data = psr.norm_3_sigma(psr_data, mean, std, type='abs')
+                if self.norm:
+                    mean = np.load(osp.join(files_path[ii], 's2_abs_mean.npy'))
+                    std = np.load(osp.join(files_path[ii], 's2_abs_std.npy'))
+                    _, _, psr_data = psr.norm_3_sigma(psr_data, mean, std, type='abs')
                 files.append(torch.from_numpy(psr_data).type(torch.complex64))
 
         elif self.data_format=='pauli':

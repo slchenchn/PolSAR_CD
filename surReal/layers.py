@@ -86,7 +86,7 @@ class ComplexConv2Deffangle(nn.Module):
 class ComplexLinearangle2Dmw_outfield(nn.Module):
     #input_dim should equal channels*frames of previous layer.
     def __init__(self, input_dim):
-        super(ComplexLinearangle2Dmw_outfield, self).__init__()
+        super().__init__()
         self.input_dim = input_dim
         self.weight = torch.nn.Parameter(torch.rand([2]), requires_grad=True)
         self.bias = torch.nn.Parameter(torch.rand([2]), requires_grad=True)
