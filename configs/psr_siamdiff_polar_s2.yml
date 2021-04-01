@@ -1,6 +1,6 @@
 # data in polar coordinate
 model:
-    arch: surreal_siam_diff3
+    arch: surreal_siam_diff4
     input_nbr: 4
     drop_p: 0
     # channel_scale: 0.25
@@ -11,9 +11,9 @@ data:
     val_split: val
     img_rows: 512
     img_cols: 512
-    format: polar_s2
+    format: polar_s2_4D
     path: /data/csl/SAR_CD/GF3
-    time_shuffle: True
+    norm: False
 train:
     augment: 
         'hflip': 0.5
@@ -25,13 +25,17 @@ train:
     n_workers: 4
     print_interval: 10
     optimizer:
+        # wrap: 'lars'
         name: 'adam'    
         # name: 'sgd'
-        # lr: 1.0e-3
+        lr: 1.0e-3
         # lr: 5.0e-4
         weight_decay: 1.0e-5
         # momentum: 0.9
-
+    lr: 
+        name: 'constant_lr'
+        # name: 'poly_lr_chen'
+        # max_iter: 8000
     loss:
         name: 'cross_entropy_mask'
         weight: [0.02, 0.98]
@@ -39,10 +43,6 @@ train:
         # alpha: 1
         # gamma: 1
         # reduction: 'mean'
-    lr: 
-        # name: 'constant_lr'
-        name: 'poly_lr_chen'
-        max_iter: 8000
     # resume: runs/siam-diff_cross_entropy_mask_sgd_poly_lr_chen_15//siam-diff_SAR_CD_intensity_best_model.pkl
     # resume: runs/fresunet_cross_entropy_mask_adam_constant_lr_1/fresunet_SAR_CD_intensity_last_model.pkl
     resume: 

@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-03-29
+Last Modified: 2021-04-01
 	content: 
 '''
 '''
@@ -33,14 +33,13 @@ import glob
 import natsort
 import re
 import logging
-import nestargs
 import matplotlib.pyplot as plt
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.models as models
 from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
-from torchsummary import summary
+from torchlars import LARS
 
 from ptsemseg.models import get_model
 from ptsemseg.loss import get_loss_function
@@ -55,6 +54,8 @@ from mylib import types
 from mylib import file_utils as fu
 import args
 import utils
+from mylib.torchsummary import summary
+from mylib import nestargs
 
 def train(cfg, writer, logger):
     
@@ -94,9 +95,9 @@ def train(cfg, writer, logger):
         data_format = cfg.data.format,
         split=cfg.data.val_split,
         )
-    logger.info(f'num of train samples: {len(t_loader)} \nnum of val samples: {len(v_loader)}')
-
     train_data_len = len(t_loader)
+    logger.info(f'num of train samples: {train_data_len} \nnum of val samples: {len(v_loader)}')
+
     batch_size = cfg.train.batch_size
     epoch = cfg.train.epoch
     train_iter = int(np.ceil(train_data_len / batch_size) * epoch)
@@ -125,9 +126,12 @@ def train(cfg, writer, logger):
     # Setup optimizer, lr_scheduler and loss function
     optimizer_cls = get_optimizer(cfg)
     optimizer_params = {k:v for k, v in vars(cfg.train.optimizer).items()
-                        if k != 'name'}
+                        if k not in ('name', 'wrap')}
     optimizer = optimizer_cls(model.parameters(), **optimizer_params)
     logger.info("Using optimizer {}".format(optimizer))
+    if hasattr(cfg.train.optimizer, 'warp') and cfg.train.optimizer.wrap=='lars':
+        optimizer = LARS(optimizer=optimizer)
+        logger.info(f'warp optimizer with {cfg.train.optimizer.wrap}')
     scheduler = get_scheduler(optimizer, cfg.train.lr)
     loss_fn = get_loss_function(cfg)
     logger.info(f"Using loss ,{str(cfg.train.loss)}")

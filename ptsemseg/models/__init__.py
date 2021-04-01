@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-03-25
+Last Modified: 2021-04-01
 	content: 
 '''
 import copy
@@ -36,9 +36,11 @@ from siamese.fresunet import *
 from siamese.complex_siamunet_diff import *
 from siamese.siamunet_diffv2 import *
 from siamese.complex_siamunet_diffv2 import *
+from siamese.siam_deeplabv3_diff import *
 from siamese.surreal_siamunet_diff import *
 from siamese.surreal_siamunet_diff2 import *
 from siamese.surreal_siamunet_diff3 import *
+from siamese.surreal_siamunet_diff4 import *
 from ptsemseg.models.my_resnet import *
 
 def get_model(model_dict, n_classes=2):
@@ -77,7 +79,7 @@ def get_model(model_dict, n_classes=2):
     elif name=="refinenet101":
         model=model(num_classes=n_classes,imagenet=True,pretrained=False,**param_dict)
 
-    elif name=="deeplabv3_os16_MG":
+    elif name in ("deeplabv3_os16_MG", 'siam_deeplabv3_diff'):
         model=model(num_classes=n_classes, **param_dict)
     elif name=="deeplabv3_os16_MG_plus":
         model=model(num_classes=n_classes, **param_dict)
@@ -97,7 +99,7 @@ def get_model(model_dict, n_classes=2):
         model=model(num_classes=n_classes,**param_dict)
     elif name =="EffUnet":
         model=model()
-    elif name in ('siam-diff', 'fresunet', 'fresunet_HM', 'csiam-diff', 'siam-diffv2', 'csiam-diffv2', 'surreal_siam_diff', 'surreal_siam_diff2', 'surreal_siam_diff3'):
+    elif name in ('siam-diff', 'fresunet', 'fresunet_HM', 'csiam-diff', 'siam-diffv2', 'csiam-diffv2', 'surreal_siam_diff', 'surreal_siam_diff2', 'surreal_siam_diff3', 'surreal_siam_diff4'):
         model=model(label_nbr=n_classes, **param_dict)
     elif name == 'siam-conc':
         model=model(**param_dict)
@@ -146,6 +148,8 @@ def _get_model_instance(name):
             'surreal_siam_diff': surReal_SiamUnet_diff,
             'surreal_siam_diff2': surReal_SiamUnet_diff2,
             'surreal_siam_diff3': surReal_SiamUnet_diff3,
+            'surreal_siam_diff4': surReal_SiamUnet_diff4,
+            'siam_deeplabv3_diff': siam_deeplabv3_diff,
         }[name]
     except:
         raise("Model {} not available".format(name))

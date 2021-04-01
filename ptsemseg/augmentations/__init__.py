@@ -7,7 +7,7 @@ Last Modified: 2021-03-11
 import logging
 # from ptsemseg.augmentations.augmentations import *
 from ptsemseg.augmentations.CD_augments import *
-from nestargs import NestedNamespace
+from mylib.nestargs import NestedNamespace
 
 logger = logging.getLogger('ptsemseg')
 

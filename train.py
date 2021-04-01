@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-03-31
+Last Modified: 2021-04-01
 	content: 
 '''
 '''
@@ -40,7 +40,7 @@ import torch.nn.functional as F
 import torchvision.models as models
 from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
-from mylib.torchsummary import summary
+from torchlars import LARS
 
 from ptsemseg.models import get_model
 from ptsemseg.loss import get_loss_function
@@ -53,6 +53,7 @@ from ptsemseg.optimizers import get_optimizer
 
 from mylib import types
 from mylib import file_utils as fu
+from mylib.torchsummary import summary
 import args
 import utils
 
@@ -84,7 +85,9 @@ def train(cfg, writer, logger):
         # to_tensor=False,
         data_format = cfg.data.format,
         split=cfg.data.train_split,
-        augments=data_aug)
+        augments=data_aug,
+        use_perc=cfg.data.use_perc
+        )
 
     v_loader = data_loader(
         data_path,
@@ -94,9 +97,9 @@ def train(cfg, writer, logger):
         data_format = cfg.data.format,
         split=cfg.data.val_split,
         )
-    logger.info(f'num of train samples: {len(t_loader)} \nnum of val samples: {len(v_loader)}')
-
     train_data_len = len(t_loader)
+    logger.info(f'num of train samples: {train_data_len} \nnum of val samples: {len(v_loader)}')
+
     batch_size = cfg.train.batch_size
     epoch = cfg.train.epoch
     train_iter = int(np.ceil(train_data_len / batch_size) * epoch)
@@ -125,9 +128,12 @@ def train(cfg, writer, logger):
     # Setup optimizer, lr_scheduler and loss function
     optimizer_cls = get_optimizer(cfg)
     optimizer_params = {k:v for k, v in vars(cfg.train.optimizer).items()
-                        if k != 'name'}
+                        if k not in ('name', 'wrap')}
     optimizer = optimizer_cls(model.parameters(), **optimizer_params)
     logger.info("Using optimizer {}".format(optimizer))
+    if hasattr(cfg.train.optimizer, 'wrap') and  cfg.train.optimizer.wrap=='lars':
+        optimizer = LARS(optimizer=optimizer)
+        logger.info(f'warp optimizer with {cfg.train.optimizer.wrap}')
     scheduler = get_scheduler(optimizer, cfg.train.lr)
     loss_fn = get_loss_function(cfg)
     logger.info(f"Using loss ,{str(cfg.train.loss)}")
@@ -313,7 +319,7 @@ def train(cfg, writer, logger):
 
 
 if __name__ == "__main__":
-    cfg = args.get_argparser('configs/psr_siamdiff_complex_s2.yml')
+    cfg = args.get_argparser('configs/psr_siamdiff_pauli.yml')
     del cfg.test
     torch.backends.cudnn.benchmark = True
     

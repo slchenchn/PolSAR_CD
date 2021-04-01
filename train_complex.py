@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-03-31
+Last Modified: 2021-04-01
 	content: 
 '''
 '''
@@ -33,7 +33,7 @@ import glob
 import natsort
 import re
 import logging
-
+from mylib import nestargs
 import matplotlib.pyplot as plt
 import torch.nn as nn
 import torch.nn.functional as F
@@ -94,9 +94,9 @@ def train(cfg, writer, logger):
         data_format = cfg.data.format,
         split=cfg.data.val_split,
         )
-    logger.info(f'num of train samples: {len(t_loader)} \nnum of val samples: {len(v_loader)}')
-
     train_data_len = len(t_loader)
+    logger.info(f'num of train samples: {train_data_len} \nnum of val samples: {len(v_loader)}')
+
     batch_size = cfg.train.batch_size
     epoch = cfg.train.epoch
     train_iter = int(np.ceil(train_data_len / batch_size) * epoch)

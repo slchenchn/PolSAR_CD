@@ -1,11 +1,9 @@
-import nestargs
-from nestargs import NestedArgumentParser
-from nestargs.parser import NestedNamespace
+from mylib import nestargs
 import yaml
 from mylib import types
 
 
-def get_argparser(config_file=None)->NestedArgumentParser:
+def get_argparser(config_file=None)->nestargs.NestedArgumentParser:
     ''' get a nested argument parser '''
 
     parser = nestargs.NestedArgumentParser(description="config")
@@ -99,7 +97,7 @@ def transfer_attributes(slave, master):
     if type(slave) != type(master):
         raise ValueError('types of master and slave should be the same')
     for k, v in vars(slave).items():
-        if isinstance(v, NestedNamespace):
+        if isinstance(v, nestargs.NestedNamespace):
             nxt_slave = getattr(slave, k)
             nxt_master = getattr(master, k)
             transfer_attributes(nxt_slave, nxt_master)
