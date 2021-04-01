@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-03-12
-Last Modified: 2021-03-15
+Last Modified: 2021-04-01
 	content: 2021-03-15：添加 ComplexUpsample 类
 '''
 #!/usr/bin/env python3
@@ -24,6 +24,8 @@ from torch import Tensor
 from .complexFunctions import complex_relu, complex_max_pool2d, complex_avg_pool2d
 from .complexFunctions import complex_dropout, complex_dropout2d
 from typing import Optional
+import math
+import numpy as np
 
 def apply_complex(fr, fi, input):
     return (fr(input.real)-fi(input.imag)).type(torch.complex64) \
@@ -92,9 +94,13 @@ class ComplexAvgPool2d(Module):
                                 return_indices = self.return_indices)
 
 class ComplexReLU(Module):
+    def __init__(self, inplace=False):
+        super().__init__()
+        self.inplace = inplace
 
-     def forward(self,input):
-         return complex_relu(input)
+    def forward(self,input):
+         return complex_relu(input, inplace=self.inplace)
+
 
 class ComplexConvTranspose2d(Module):
 
@@ -380,6 +386,25 @@ class ComplexUpsample(Module):
         real = self.up(input.real).type(torch.complex64)    
         imag = self.up(input.imag).type(torch.complex64)
         return real + 1j*imag
+
+
+def complex_kaiming_normal(tensor, nonlinearity='relu'):
+    ''' from the paper "deep complex networks" '''
+    num_input_fmaps = tensor.size(1)
+    receptive_field_size = 1
+    if tensor.dim() > 2:
+        receptive_field_size = tensor[0][0].numel()
+    if nonlinearity=='relu':
+        fan_in = num_input_fmaps*receptive_field_size
+    else:
+        raise NotImplementedError
+    sigma = 1/math.sqrt(fan_in)
+    with torch.no_grad():
+        mag = np.random.rayleigh(sigma, size=tensor.shape)
+        agl = np.random.uniform(low=-np.pi, high=np.pi, size=tensor.shape)
+        tensor.real = mag*np.cos(agl)
+        tensor.imag = mag*np.sin(agl)
+
 
 
 if __name__=='__main__':

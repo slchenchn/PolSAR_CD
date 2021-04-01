@@ -231,50 +231,7 @@ class ResNet_BasicBlock_OS8(nn.Module):
         output = self.layer5(output) # (shape: (batch_size, 512, h/8, w/8))
 
         return output
-
-class complex_ResNet_BasicBlock_OS8(nn.Module):
-    def __init__(self, num_layers, pretrained=True, input_nbr=4):
-        super().__init__()
-
-        if num_layers == 18:
-            resnet = models.resnet18(input_nbr=input_nbr)
-            # load pretrained model:
-            if pretrained:
-                resnet.load_state_dict(torch.load("/root/deeplabv3/pretrained_models/resnet/resnet18-5c106cde.pth"))
-                print ("pretrained resnet, 18")
-            # remove fully connected layer, avg pool, layer4 and layer5:
-            self.resnet = nn.Sequential(*list(resnet.children())[:-4])
-
-            num_blocks_layer_4 = 2
-            num_blocks_layer_5 = 2
-        elif num_layers == 34:
-            resnet = models.resnet34(input_nbr=input_nbr)
-            # load pretrained model:
-            if pretrained:
-                resnet.load_state_dict(torch.load("/root/deeplabv3/pretrained_models/resnet/resnet34-333f7ec4.pth"))
-                print ("pretrained resnet, 34")
-            # remove fully connected layer, avg pool, layer4 and layer5:
-            self.resnet = nn.Sequential(*list(resnet.children())[:-4])
-
-            num_blocks_layer_4 = 6
-            num_blocks_layer_5 = 3
-        else:
-            raise Exception("num_layers must be in {18, 34}!")
-
-        self.layer4 = make_layer(BasicBlock, in_channels=128, channels=256, num_blocks=num_blocks_layer_4, stride=1, dilation=2)
-        self.layer5 = make_layer(BasicBlock, in_channels=256, channels=512, num_blocks=num_blocks_layer_5, stride=1, dilation=4)
-
-    def forward(self, x):
-        # (x has shape (batch_size, 3, h, w))
-
-        # pass x through (parts of) the pretrained ResNet:
-        c3 = self.resnet(x) # (shape: (batch_size, 128, h/8, w/8)) (it's called c3 since 8 == 2^3)
-
-        output = self.layer4(c3) # (shape: (batch_size, 256, h/8, w/8))
-        output = self.layer5(output) # (shape: (batch_size, 512, h/8, w/8))
-
-        return output
-
+        
 
 def ResNet18_OS16(pretrained=True, input_nbr=3):
     return ResNet_BasicBlock_OS16(num_layers=18, pretrained=pretrained, input_nbr=input_nbr)
@@ -295,7 +252,7 @@ def ResNet18_OS8(pretrained=True, input_nbr=3):
     return ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr)
 
 def complex_ResNet18_OS8(pretrained=True, input_nbr=4):
-    return complex_ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr)
+    return ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr)
 
 def ResNet34_OS8(pretrained=True, input_nbr=3):
     return ResNet_BasicBlock_OS8(num_layers=34, pretrained=pretrained, input_nbr=input_nbr)
