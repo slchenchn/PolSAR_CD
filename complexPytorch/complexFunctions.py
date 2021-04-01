@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-03-12
-Last Modified: 2021-03-12
+Last Modified: 2021-04-01
 	content: 
 '''
 #!/usr/bin/env python3
@@ -33,8 +33,8 @@ def complex_avg_pool2d(input, *args, **kwargs):
     
     return absolute_value_real.type(torch.complex64)+1j*absolute_value_imag.type(torch.complex64)
 
-def complex_relu(input):
-    return relu(input.real).type(torch.complex64)+1j*relu(input.imag).type(torch.complex64)
+def complex_relu(input, inplace=False):
+    return relu(input.real, inplace).type(torch.complex64)+1j*relu(input.imag, inplace).type(torch.complex64)
 
 
 def _retrieve_elements_from_indices(tensor, indices):
