@@ -12,6 +12,7 @@ from surReal.layers import *
 
 class surReal_SiamUnet_diff5(nn.Module):
     '''全新设计的复数差分孪生网络，用surreal的代码
+    失败了，需要的参数量太大，训练时间也非常长
  '''
 
     def __init__(self, input_nbr, label_nbr, drop_p=0.2):

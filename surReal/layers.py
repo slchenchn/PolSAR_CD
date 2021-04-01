@@ -94,7 +94,7 @@ class ComplexLinear_per_channel(nn.Module):
             self.linear_layers[i].cuda()
     
     def forward(self, x):
-        ''' 输入为5维向量，分别是[batch, 2, channel, height, width] 
+        '''  输入为5维向量，分别是[batch, 2, channel, height, width] 
         第二维为 [角度，幅度]，角度的范围为[0-pi] '''
         ret = torch.zeros(x.shape[0], x.shape[2], x.shape[3], x.shape[4], device='cuda')
         for ii in range(self.dim):
