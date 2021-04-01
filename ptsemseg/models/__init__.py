@@ -41,6 +41,7 @@ from siamese.surreal_siamunet_diff import *
 from siamese.surreal_siamunet_diff2 import *
 from siamese.surreal_siamunet_diff3 import *
 from siamese.surreal_siamunet_diff4 import *
+from siamese.surreal_siamunet_diff5 import *
 from ptsemseg.models.my_resnet import *
 
 def get_model(model_dict, n_classes=2):
@@ -99,7 +100,7 @@ def get_model(model_dict, n_classes=2):
         model=model(num_classes=n_classes,**param_dict)
     elif name =="EffUnet":
         model=model()
-    elif name in ('siam-diff', 'fresunet', 'fresunet_HM', 'csiam-diff', 'siam-diffv2', 'csiam-diffv2', 'surreal_siam_diff', 'surreal_siam_diff2', 'surreal_siam_diff3', 'surreal_siam_diff4'):
+    elif name in ('siam-diff', 'fresunet', 'fresunet_HM', 'csiam-diff', 'siam-diffv2', 'csiam-diffv2', 'surreal_siam_diff', 'surreal_siam_diff2', 'surreal_siam_diff3', 'surreal_siam_diff4', 'surreal_siam_diff5'):
         model=model(label_nbr=n_classes, **param_dict)
     elif name == 'siam-conc':
         model=model(**param_dict)
@@ -149,6 +150,7 @@ def _get_model_instance(name):
             'surreal_siam_diff2': surReal_SiamUnet_diff2,
             'surreal_siam_diff3': surReal_SiamUnet_diff3,
             'surreal_siam_diff4': surReal_SiamUnet_diff4,
+            'surreal_siam_diff5': surReal_SiamUnet_diff5,
             'siam_deeplabv3_diff': siam_deeplabv3_diff,
         }[name]
     except:

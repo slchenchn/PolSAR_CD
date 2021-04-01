@@ -2,7 +2,7 @@
 Author: Shuailin Chen
 Created Date: 2021-03-18
 Last Modified: 2021-03-19
-	content: 
+	content: ComplexConv2Deffgroup()和ComplexConv2Deffangle()添加 padding 参数，具体来说，是在nn.fold()和nn.unfold()两个函数添加padding参数，并修改计算输出数据的尺寸，即out_spatial_x和out_spatial_y
 '''
 import torch 
 import time, os
@@ -31,26 +31,27 @@ def weightNormalize(weights, drop_prob=0.0):
 
 
 class ComplexConv2Deffangle(nn.Module):
-    def __init__(self, in_channels, out_channels, kern_size, stride, drop_prob=0.0):
-        super(ComplexConv2Deffangle, self).__init__()
+    def __init__(self, in_channels, out_channels, kern_size, stride, drop_prob=0.0, padding=(0,0)):
+        super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kern_size = kern_size
         self.stride = stride
         self.drop_prob = drop_prob
+        self.padding = padding
         self.weight_matrix_rot1 = torch.nn.Parameter(torch.rand(in_channels, kern_size[0]*kern_size[1]), requires_grad=True)
         self.weight_matrix_rot2 = torch.nn.Parameter(torch.rand(out_channels, in_channels), requires_grad=True)
         
     def forward(self, x):
         x_shape = x.shape
-        out_spatial_x = int(math.floor((x_shape[3]-(self.kern_size[0]-1)-1)/self.stride[0] + 1))
-        out_spatial_y = int(math.floor((x_shape[4]-(self.kern_size[1]-1)-1)/self.stride[1] + 1))
+        out_spatial_x = int(math.floor((x_shape[3]+2*self.padding[0]-(self.kern_size[0]-1)-1)/self.stride[0] + 1))
+        out_spatial_y = int(math.floor((x_shape[4]+2*self.padding[1]-(self.kern_size[1]-1)-1)/self.stride[1] + 1))
         
         #Shape: [batches, features, in_channels, spatial_x, spatial_y] -> [batches*features, in_channels, spatial_x, spatial_y]
         x = x.view(-1,self.in_channels,x_shape[3],x_shape[4])
         
         #Shape: [batches, features, in_channels, kern_size[0]*kern_size[1], L]
-        temporal_buckets = nn.Unfold(kernel_size=self.kern_size, stride=self.stride)(x).view(x_shape[0], x_shape[1],  self.in_channels, self.kern_size[0]*self.kern_size[1], -1)
+        temporal_buckets = nn.Unfold(kernel_size=self.kern_size, stride=self.stride, padding=self.padding)(x).view(x_shape[0], x_shape[1],  self.in_channels, self.kern_size[0]*self.kern_size[1], -1)
         
         #Shape: [batches, in_channels, kern_size[0]*kern_size[1], L]
         temporal_buckets_rot = temporal_buckets[:,0,...]
@@ -77,12 +78,32 @@ class ComplexConv2Deffangle(nn.Module):
         
         #Shape: [batches, 1, out_channels, out_spatial_x, out_spatial_y]
         out_abs = torch.exp(torch.sum(out_abs*weightNormalize(self.weight_matrix_rot2,self.drop_prob),2)).view(out_abs_shape[0], 1, out_spatial_x, out_spatial_y, self.out_channels).permute(0,1,4,2,3).contiguous()
-        
         return torch.cat((out_rot,out_abs),1)
     
+
+class ComplexLinear_per_channel(nn.Module):
+    ''' complex number to real number per channel '''
+    def __init__(self, dim, spatial_size):
+        super().__init__()
+        self.linear_layers = []
+        self.dim = dim
+        if not isinstance(spatial_size, (list, tuple)):
+            spatial_size = (spatial_size, spatial_size)
+        for i in range(dim):
+            self.linear_layers.append(ComplexLinearangle2Dmw_outfield(np.prod(spatial_size)))
+            self.linear_layers[i].cuda()
     
+    def forward(self, x):
+        ''' 输入为5维向量，分别是[batch, 2, channel, height, width] 
+        第二维为 [角度，幅度]，角度的范围为[0-pi] '''
+        ret = torch.zeros(x.shape[0], x.shape[2], x.shape[3], x.shape[4], device='cuda')
+        for ii in range(self.dim):
+            ret[:, ii, :, :] = self.linear_layers[ii](x[:, :, ii, :, :].unsqueeze(2)).squeeze(1)
+        
+        return ret
 
 
+        
 class ComplexLinearangle2Dmw_outfield(nn.Module):
     #input_dim should equal channels*frames of previous layer.
     def __init__(self, input_dim):
@@ -130,25 +151,15 @@ class ComplexLinearangle2Dmw_outfield(nn.Module):
         return dist_l1
 
 
-
-
 class manifoldReLUv2angle(nn.Module):
-    def __init__(self,channels):
-        super(manifoldReLUv2angle, self).__init__()
-        self.weight_rot = torch.nn.Parameter(torch.rand(1,channels), requires_grad=True)
-        self.weight_abs = torch.nn.Parameter(torch.rand(1,channels), requires_grad=True)
+    def __init__(self, channels):
+        super().__init__()
+        self.weight_rot = torch.nn.Parameter(torch.rand(1, channels), requires_grad=True)
+        self.weight_abs = torch.nn.Parameter(torch.rand(1, channels), requires_grad=True)
         self.channels = channels 
 
     def forward(self, x):
         #Shape: [batches, features, in_channels, spatial_x, spatial_y]
-
-        phase = x[:, 0, ...]
-        phase = phase.reshape(-1)
-        # print('-'*50)
-        # print('phase max: ', phase.max())
-        # print('phase min: ', phase.min())
-        # print('-'*50)
-
         x_shape = x.shape  
         temp_rot = x[:,0,...]
         temp_abs = x[:,1,...]  
@@ -157,23 +168,43 @@ class manifoldReLUv2angle(nn.Module):
         return torch.cat((temp_rot_prod, temp_abs),1)
     
 
+class manifoldReLUv2angle(nn.Module):
+    def __init__(self, channels):
+        super().__init__()
+        self.weight_rot = torch.nn.Parameter(torch.rand(1, channels), requires_grad=True)
+        self.weight_abs = torch.nn.Parameter(torch.rand(1, channels), requires_grad=True)
+        self.channels = channels 
+
+    def forward(self, x):
+        #Shape: [batches, features, in_channels, spatial_x, spatial_y]
+        x_shape = x.shape  
+        temp_rot = x[:,0,...]
+        temp_abs = x[:,1,...]  
+        temp_rot_prod = (temp_rot.unsqueeze(1)*(weightNormalize2(self.weight_rot+eps)).unsqueeze(0).unsqueeze(3).unsqueeze(4).repeat(x_shape[0],1,1,x_shape[3],x_shape[4]))
+        temp_abs = (temp_abs.unsqueeze(1)+(weightNormalize1(self.weight_abs+eps)).unsqueeze(0).unsqueeze(3).unsqueeze(4).repeat(x_shape[0],1,1,x_shape[3],x_shape[4]))
+        return torch.cat((temp_rot_prod, temp_abs),1)
+        
+
 class ComplexConv2Deffgroup(nn.Module):
-      def __init__(self, in_channels, out_channels, kern_size, stride, do_conv=True):
-        super(ComplexConv2Deffgroup, self).__init__()
+    ''' 输入为5维向量，分别是[batch, 2, channel, height, width] 
+    第二维为 [角度，幅度]，角度的范围为[0-pi] '''
+    def __init__(self, in_channels, out_channels, kern_size, stride, do_conv=True, padding = (0, 0)):
+        super().__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kern_size = kern_size
         self.stride = stride
+        self.padding = padding
         self.do_conv = do_conv
         self.wmr = torch.nn.Parameter(torch.rand(in_channels, kern_size[0]*kern_size[1]), requires_grad=True)
         self.wma = torch.nn.Parameter(torch.rand(in_channels, kern_size[0]*kern_size[1]), requires_grad=True) 
         if do_conv: 
-            self.complex_conv = ComplexConv2Deffangle(in_channels, out_channels, kern_size, stride)
+            self.complex_conv = ComplexConv2Deffangle(in_channels, out_channels, kern_size, stride, padding=self.padding)
         else:
             self.new_wr = torch.nn.Parameter(torch.rand(out_channels, in_channels), requires_grad=True)
             self.new_wa = torch.nn.Parameter(torch.rand(out_channels, in_channels), requires_grad=True)
       
-      def ComplexweightedMean(self, x_rot, x_abs):
+    def ComplexweightedMean(self, x_rot, x_abs):
         x_shape = x_rot.shape
         out_rot = torch.sum(x_rot*weightNormalize1(self.w1), 2).unsqueeze(1).repeat(1, self.out_channels, 1)
         out_rot = torch.sum(out_rot*weightNormalize1(self.w2),2)
@@ -182,17 +213,16 @@ class ComplexConv2Deffgroup(nn.Module):
         out_abs = torch.exp(torch.sum(out_abs*weightNormalize1(self.w2), 2))
         return (out_rot,out_abs)
 
-      def forward(self, x):
-
+    def forward(self, x):
         x_shape = x.shape
-        out_spatial_x = int(math.floor((x_shape[3]-(self.kern_size[0]-1)-1)/self.stride[0] + 1))
-        out_spatial_y = int(math.floor((x_shape[4]-(self.kern_size[1]-1)-1)/self.stride[1] + 1))
+        out_spatial_x = int(math.floor((x_shape[3]+2*self.padding[0]-(self.kern_size[0]-1)-1)/self.stride[0] + 1))
+        out_spatial_y = int(math.floor((x_shape[4]+2*self.padding[1]-(self.kern_size[1]-1)-1)/self.stride[1] + 1))
         
         #Shape: [batches, features, in_channels, spatial_x, spatial_y] -> [batches*features, in_channels, spatial_x, spatial_y]
         x = x.view(-1,self.in_channels,x_shape[3],x_shape[4])
         
         #Shape: [batches, features, in_channels, kern_size[0]*kern_size[1], L]
-        temporal_buckets = nn.Unfold(kernel_size=self.kern_size, stride=self.stride)(x).view(x_shape[0], x_shape[1],  self.in_channels, self.kern_size[0]*self.kern_size[1], -1)
+        temporal_buckets = nn.Unfold(kernel_size=self.kern_size, stride=self.stride, padding=self.padding)(x).view(x_shape[0], x_shape[1],  self.in_channels, self.kern_size[0]*self.kern_size[1], -1)
         
         #Shape: [batches, in_channels, kern_size[0]*kern_size[1], L]
         temporal_buckets_rot = temporal_buckets[:,0,...]
@@ -212,7 +242,7 @@ class ComplexConv2Deffgroup(nn.Module):
             in_rot = in_rot.view(tbr_shape0[0], out_spatial_x, out_spatial_y, -1).permute(0,3,1,2).contiguous().unsqueeze(1)
             in_abs = in_abs.view(tbr_shape0[0], out_spatial_x, out_spatial_y, -1).permute(0,3,1,2).contiguous().unsqueeze(1)
             in_ = torch.cat((in_rot, in_abs), 1).view(tbr_shape0[0], -1, out_spatial_x*out_spatial_y)
-            in_fold = nn.Fold(output_size=(x_shape[3],x_shape[4]), kernel_size=self.kern_size, stride=self.stride)(in_)
+            in_fold = nn.Fold(output_size=(x_shape[3],x_shape[4]), kernel_size=self.kern_size, stride=self.stride, padding=self.padding)(in_)
             in_fold = in_fold.view(x_shape[0],x_shape[1],x_shape[2],x_shape[3],x_shape[4])
             out = self.complex_conv(in_fold)
         else:

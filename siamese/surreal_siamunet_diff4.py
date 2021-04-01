@@ -12,7 +12,7 @@ from surReal.shrinkage_layers import *
 from surReal.layers import ComplexLinearangle2Dmw_outfield
 
 class surReal_SiamUnet_diff4(nn.Module):
-    '''全新设计的复数差分孪生网络
+    '''全新设计的复数差分孪生网络，用c-sure的代码
  '''
 
     def __init__(self, input_nbr, label_nbr, drop_p=0.2):

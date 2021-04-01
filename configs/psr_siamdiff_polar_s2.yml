@@ -1,6 +1,6 @@
 # data in polar coordinate
 model:
-    arch: surreal_siam_diff4
+    arch: surreal_siam_diff5
     input_nbr: 4
     drop_p: 0
     # channel_scale: 0.25
@@ -11,7 +11,7 @@ data:
     val_split: val
     img_rows: 512
     img_cols: 512
-    format: polar_s2_4D
+    format: polar_s2
     path: /data/csl/SAR_CD/GF3
     norm: False
 train:
@@ -19,7 +19,7 @@ train:
         'hflip': 0.5
         'vflip': 0.5
         # 'rotate': 180
-    epoch: 400
+    epoch: 100
     batch_size: 4
     val_interval: 30
     n_workers: 4
