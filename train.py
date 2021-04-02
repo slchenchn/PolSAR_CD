@@ -84,6 +84,7 @@ def train(cfg, writer, logger):
         # time_shuffle = cfg.data.time_shuffle,
         # to_tensor=False,
         data_format = cfg.data.format,
+        norm = cfg.data.norm,
         split=cfg.data.train_split,
         augments=data_aug,
         use_perc=cfg.data.use_perc

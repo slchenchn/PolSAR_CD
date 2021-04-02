@@ -13,7 +13,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 # import torchvision.models as models
 from mylib import my_resnet as models
-
+from complexPytorch.complex_resnet import *
 
 def make_layer(block, in_channels, channels, num_blocks, stride=1, dilation=2):
 
@@ -252,7 +252,7 @@ def ResNet18_OS8(pretrained=True, input_nbr=3):
     return ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr)
 
 def complex_ResNet18_OS8(pretrained=True, input_nbr=4):
-    return ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr)
+    return complex_ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr)
 
 def ResNet34_OS8(pretrained=True, input_nbr=3):
     return ResNet_BasicBlock_OS8(num_layers=34, pretrained=pretrained, input_nbr=input_nbr)

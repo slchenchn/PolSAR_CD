@@ -85,7 +85,9 @@ def train(cfg, writer, logger):
         # to_tensor=False,
         data_format = cfg.data.format,
         split=cfg.data.train_split,
-        augments=data_aug)
+        norm = cfg.data.norm,
+        augments=data_aug
+        )
 
     v_loader = data_loader(
         data_path,
