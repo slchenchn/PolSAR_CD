@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-04-01
+Last Modified: 2021-04-03
 	content: 
 '''
 '''
@@ -319,7 +319,7 @@ def train(cfg, writer, logger):
 
 
 if __name__ == "__main__":
-    cfg = args.get_argparser('configs/psr_siamdiff_polar_s2.yml')
+    cfg = args.get_argparser('configs/psr_siamdiff_polar_c3.yml')
     del cfg.test
     torch.backends.cudnn.benchmark = True
     

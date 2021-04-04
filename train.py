@@ -1,15 +1,9 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-04-01
+Last Modified: 2021-04-03
 	content: 
 '''
-'''
-Author: Shuailin Chen
-Created Date: 2020-11-27
-Last Modified: 2021-03-11
-'''
-
 ''' 
 2020-11-22 将基于字典的配置参数改为基于 argparse 的
 2020-11-23 将载入数据的时间也加入运行时间的计算
@@ -53,6 +47,7 @@ from ptsemseg.optimizers import get_optimizer
 
 from mylib import types
 from mylib import file_utils as fu
+from mylib import my_torch_tools as tt
 from mylib.torchsummary import summary
 import args
 import utils
@@ -139,6 +134,9 @@ def train(cfg, writer, logger):
     loss_fn = get_loss_function(cfg)
     logger.info(f"Using loss ,{str(cfg.train.loss)}")
 
+    if cfg.train.clip:
+        logger.info(f'max grad norm: {cfg.train.clip}')
+
     # load checkpoints
     val_cls_1_acc = 0
     best_cls_1_acc_now = 0
@@ -204,12 +202,33 @@ def train(cfg, writer, logger):
             outputs = model(file_a, file_b)
             loss = loss_fn(input=outputs, target=label, mask=mask)
             loss.backward()
+            
+            grads = []
+            for param in model.parameters():
+                grads.append(param.grad.view(-1))
+            grads = torch.cat(grads)
+            grads = torch.abs(grads)
+            grads_total_norm = tt.get_params_norm(model.parameters(), norm_type=1)
+            writer.add_scalars('grads/unnormed', {'mean': grads.mean(), 'max':grads.max(), 'total':grads_total_norm}, it)
 
+            # logger.info(f'max grad: {grads.max()}, mean grad: {grads.mean()}')
             # print('conv11: ', model.conv11.weight.grad, model.conv11.weight.grad.shape)
             # print('conv21: ', model.conv21.weight.grad, model.conv21.weight.grad.shape)
             # print('conv31: ', model.conv31.weight.grad, model.conv31.weight.grad.shape)
 
             # In PyTorch 1.1.0 and later, you should call `optimizer.step()` before `lr_scheduler.step()`
+
+            if cfg.train.clip:
+                nn.utils.clip_grad_norm_(model.parameters(), max_norm=cfg.train.clip, norm_type=1)
+
+            grads = []
+            for param in model.parameters():
+                grads.append(param.grad.view(-1))
+            grads = torch.cat(grads)
+            grads = torch.abs(grads)
+            grads_total_norm = tt.get_params_norm(model.parameters(), norm_type=1)
+            writer.add_scalars('grads/normed', {'mean': grads.mean(), 'max':grads.max(), 'total':grads_total_norm}, it)
+
             optimizer.step()
             scheduler.step()
             

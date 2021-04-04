@@ -3,22 +3,22 @@ Author: Shuailin Chen
 Created Date: 2020-11-27
 Last Modified: 2021-04-03
 '''
-# 孪生deeplabv3网路，最简单的adaption
+# 复数孪生deeplabv3网路
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.modules.padding import ReplicationPad2d
 from complexPytorch import *
-from ptsemseg.models.resnet import ResNet18_OS16, ResNet34_OS16, ResNet50_OS16, ResNet101_OS16, ResNet152_OS16, ResNet18_OS8, ResNet34_OS8
-from ptsemseg.models.aspp import ASPP, ASPP_Bottleneck
+from ptsemseg.models.resnet import *
+from ptsemseg.models.complex_aspp import *
+from ptsemseg.models.aspp import *
 
-class siam_deeplabv3_diff(nn.Module):
-    """SiamUnet_diff segmentation network."""
 
-    def __init__(self, input_nbr, num_classes, drop_p=0.2, pretrained=True, channel_scale=0.5):
+class surreal_siam_deeplabv3_diff(nn.Module):
+    def __init__(self, input_nbr, num_classes, channel_scale=0.25, pretrained=True):
         super().__init__()
-        self.backbone = ResNet18_OS8(pretrained=pretrained, input_nbr=input_nbr, channel_scale=channel_scale)
+        self.backbone = surreal_ResNet18_OS8(pretrained=pretrained, input_nbr=input_nbr, channel_scale=channel_scale)
         self.aspp = ASPP(num_classes=num_classes, channel_scale=channel_scale)
 
     def forward(self, x1, x2):

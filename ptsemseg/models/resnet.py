@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-04-01
-Last Modified: 2021-04-01
+Last Modified: 2021-04-03
 	content: 
 '''
 # camera-ready
@@ -190,11 +190,11 @@ class ResNet_BasicBlock_OS16(nn.Module):
         return output
 
 class ResNet_BasicBlock_OS8(nn.Module):
-    def __init__(self, num_layers, pretrained=True, input_nbr=3):
+    def __init__(self, num_layers, pretrained=True, input_nbr=3, channel_scale=1.0):
         super().__init__()
 
         if num_layers == 18:
-            resnet = models.resnet18(input_nbr=input_nbr)
+            resnet = models.resnet18(input_nbr=input_nbr, channel_scale=channel_scale)
             # load pretrained model:
             if pretrained:
                 resnet.load_state_dict(torch.load("/root/deeplabv3/pretrained_models/resnet/resnet18-5c106cde.pth"))
@@ -205,7 +205,7 @@ class ResNet_BasicBlock_OS8(nn.Module):
             num_blocks_layer_4 = 2
             num_blocks_layer_5 = 2
         elif num_layers == 34:
-            resnet = models.resnet34(input_nbr=input_nbr)
+            resnet = models.resnet34(input_nbr=input_nbr, channel_scale=channel_scale)
             # load pretrained model:
             if pretrained:
                 resnet.load_state_dict(torch.load("/root/deeplabv3/pretrained_models/resnet/resnet34-333f7ec4.pth"))
@@ -218,8 +218,8 @@ class ResNet_BasicBlock_OS8(nn.Module):
         else:
             raise Exception("num_layers must be in {18, 34}!")
 
-        self.layer4 = make_layer(BasicBlock, in_channels=128, channels=256, num_blocks=num_blocks_layer_4, stride=1, dilation=2)
-        self.layer5 = make_layer(BasicBlock, in_channels=256, channels=512, num_blocks=num_blocks_layer_5, stride=1, dilation=4)
+        self.layer4 = make_layer(BasicBlock2, in_channels=int(channel_scale*128), channels=int(channel_scale*256), num_blocks=num_blocks_layer_4, stride=1, dilation=2)
+        self.layer5 = make_layer(BasicBlock2, in_channels=int(channel_scale*256), channels=int(channel_scale*512), num_blocks=num_blocks_layer_5, stride=1, dilation=4)
 
     def forward(self, x):
         # (x has shape (batch_size, 3, h, w))
@@ -248,11 +248,17 @@ def ResNet101_OS16(pretrained=True, input_nbr=3):
 def ResNet152_OS16(pretrained=True, input_nbr=3):
     return ResNet_Bottleneck_OS16(num_layers=152, pretrained=pretrained, input_nbr=input_nbr)
 
-def ResNet18_OS8(pretrained=True, input_nbr=3):
-    return ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr)
+def ResNet18_OS8(pretrained=True, channel_scale=0.5, input_nbr=3):
+    return ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr, channel_scale=channel_scale)
 
-def complex_ResNet18_OS8(pretrained=True, input_nbr=4):
-    return complex_ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr)
+
+def complex_ResNet18_OS8(pretrained=True, input_nbr=4, channel_scale=0.25):
+    return complex_ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr, channel_scale=channel_scale)
+
+
+def surreal_ResNet18_OS8(pretrained=True, input_nbr=4, channel_scale=0.25):
+    return surreal_ResNet_BasicBlock_OS8(num_layers=18, pretrained=pretrained, input_nbr=input_nbr, channel_scale=channel_scale)
+
 
 def ResNet34_OS8(pretrained=True, input_nbr=3):
     return ResNet_BasicBlock_OS8(num_layers=34, pretrained=pretrained, input_nbr=input_nbr)

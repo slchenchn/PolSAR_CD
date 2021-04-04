@@ -10,9 +10,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from surReal.layers import *
 
-class surReal_SiamUnet_diff5(nn.Module):
+class surReal_SiamUnet_diff6(nn.Module):
     '''全新设计的复数差分孪生网络，用surreal的代码
-    失败了，需要的参数量太大，训练时间也非常长
+    相比于v5，减少了参数量
  '''
 
     def __init__(self, input_nbr, label_nbr, drop_p=0.2):
@@ -20,29 +20,29 @@ class surReal_SiamUnet_diff5(nn.Module):
 
         self.input_nbr = input_nbr
 
-        self.conv11 = ComplexConv2Deffgroup(input_nbr, 8, kern_size=(3,3), stride=(1, 1), padding=(1,1))
-        self.conv12 = ComplexConv2Deffgroup(8, 8, kern_size=(3,3), stride=(1, 1), padding=(1,1))
+        self.conv11 = ComplexConv2Deffgroup(input_nbr, 8, kern_size=(3,3), stride=(2, 2), padding=(1,1))
+        self.conv12 = ComplexConv2Deffgroup(8, 8, kern_size=(3,3), stride=(2, 2), padding=(1,1))
         self.proj11 = manifoldReLUv2angle(8)
         self.proj12 = manifoldReLUv2angle(8)
-        self.dist1 = ComplexLinear_per_channel(8, 512)
+        self.dist1 = ComplexLinear_per_channel(8, 128)
 
         self.conv21 = ComplexConv2Deffgroup(8, 16, kern_size=(3,3), stride=(2, 2), padding=(1,1))
         self.conv22 = ComplexConv2Deffgroup(16, 16, kern_size=(3,3), stride=(1, 1), padding=(1,1))
         self.proj21 = manifoldReLUv2angle(16)
         self.proj22 = manifoldReLUv2angle(16)
-        self.dist2 = ComplexLinear_per_channel(16, 256)
+        self.dist2 = ComplexLinear_per_channel(16, 64)
 
         self.conv31 = ComplexConv2Deffgroup(16, 32, kern_size=(3,3), stride=(2, 2), padding=(1,1))
         self.conv32 = ComplexConv2Deffgroup(32, 32, kern_size=(3,3), stride=(1, 1), padding=(1,1))
         self.proj31 = manifoldReLUv2angle(32)
         self.proj32 = manifoldReLUv2angle(32)
-        self.dist3 = ComplexLinear_per_channel(32, 128)
+        self.dist3 = ComplexLinear_per_channel(32, 32)
 
         self.conv41 = ComplexConv2Deffgroup(32, 64, kern_size=(3,3), stride=(2, 2), padding=(1,1))
         self.conv42 = ComplexConv2Deffgroup(64, 64, kern_size=(3,3), stride=(1, 1), padding=(1,1))
         self.proj41 = manifoldReLUv2angle(64)
         self.proj42 = manifoldReLUv2angle(64)
-        self.dist4 = ComplexLinear_per_channel(64, 64)
+        self.dist4 = ComplexLinear_per_channel(64, 16)
 
         self.upconv = nn.Upsample(scale_factor=2, mode='bilinear')
 
@@ -123,5 +123,7 @@ class surReal_SiamUnet_diff5(nn.Module):
         x1d = torch.cat((x21d, torch.abs(x12_1-x12_2)), dim=1)
         x12d = F.relu(self.bn12d(self.conv12d(x1d)))
         x11d = self.conv11d(x12d)
+        
+        x11d = self.upconv(self.upconv(x11d))
 
         return x11d

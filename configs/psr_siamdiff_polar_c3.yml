@@ -1,10 +1,8 @@
-# data in polar coordinate
 model:
-    arch: surreal_siam_diff3
+    arch: surreal_siam_deeplabv3_diff
     input_nbr: 6    
-    drop_p: 0
-    # channel_scale: 0.25
-    # label_nbr: 2
+    channel_scale: 0.25
+    pretrained: False
 data:
     dataloader: PolSAR_CD_base
     train_split: train
@@ -13,7 +11,7 @@ data:
     img_cols: 512
     format: polar_c3
     path: /data/csl/SAR_CD/GF3
-    time_shuffle: True
+    norm: True
 train:
     augment: 
         'hflip': 0.5
@@ -25,12 +23,12 @@ train:
     n_workers: 4
     print_interval: 10
     optimizer:
-        name: 'sgd'    
+        name: 'adam'    
         # name: 'sgd'
-        lr: 1.0e-3
+        lr: 1.0e-4
         # lr: 5.0e-4
         weight_decay: 1.0e-5
-        momentum: 0.9
+        # momentum: 0.9
 
     loss:
         name: 'cross_entropy_mask'
@@ -40,13 +38,13 @@ train:
         # gamma: 1
         # reduction: 'mean'
     lr: 
-        # name: 'constant_lr'
-        name: 'poly_lr_chen'
-        max_iter: 8000
+        name: 'constant_lr'
+        # name: 'poly_lr_chen'
+        # max_iter: 8000
     # resume: runs/siam-diff_cross_entropy_mask_sgd_poly_lr_chen_15//siam-diff_SAR_CD_intensity_best_model.pkl
     # resume: runs/fresunet_cross_entropy_mask_adam_constant_lr_1/fresunet_SAR_CD_intensity_last_model.pkl
     resume: 
-    clip: False
+    clip: 20
 test:
     out_path: 'result'
     pth: 'runs/surreal_siam_diff3_cross_entropy_mask_sgd_poly_lr_chen_0/surreal_siam_diff3_PolSAR_CD_base_best_model.pkl'

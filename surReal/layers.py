@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-03-18
-Last Modified: 2021-03-19
+Last Modified: 2021-04-02
 	content: ComplexConv2Deffgroup()和ComplexConv2Deffangle()添加 padding 参数，具体来说，是在nn.fold()和nn.unfold()两个函数添加padding参数，并修改计算输出数据的尺寸，即out_spatial_x和out_spatial_y
 '''
 import torch 
@@ -111,7 +111,9 @@ class ComplexLinearangle2Dmw_outfield(nn.Module):
         self.input_dim = input_dim
         self.weight = torch.nn.Parameter(torch.rand([2]), requires_grad=True)
         self.bias = torch.nn.Parameter(torch.rand([2]), requires_grad=True)
-        self.weights = torch.nn.Parameter(torch.rand(input_dim), requires_grad=True)
+        self.weights = torch.ones(input_dim, dtype=torch.float32)/input_dim
+        self.weights = self.weights.cuda()
+        # self.weights = torch.nn.Parameter(torch.rand(input_dim), requires_grad=True)
 
     def ComplexunweightedMeanLinear(self, x_rot, x_abs):
         #x_rot.shape: [batches, out_channels* out_spatial_x* out_spatial_y]

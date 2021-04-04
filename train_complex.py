@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-04-01
+Last Modified: 2021-04-03
 	content: 
 '''
 '''
@@ -85,6 +85,7 @@ def train(cfg, writer, logger):
         data_format = cfg.data.format,
         split=cfg.data.train_split,
         norm = cfg.data.norm,
+        use_perc = cfg.data.use_perc,
         augments=data_aug
         )
 
@@ -186,6 +187,7 @@ def train(cfg, writer, logger):
     train_start_time = time.time() 
     train_val_start_time = time.time()
     model.train()   
+    # torch.autograd.set_detect_anomaly(True)
     while it < train_iter:
         for (file_a, file_b, label, mask) in trainloader:
             it += 1           
@@ -205,6 +207,10 @@ def train(cfg, writer, logger):
             # print('conv31: ', model.conv31.weight.grad, model.conv31.weight.grad.shape)
 
             # In PyTorch 1.1.0 and later, you should call `optimizer.step()` before `lr_scheduler.step()`
+            
+            if cfg.train.clip:
+                nn.utils.clip_grad_norm_(model.parameters(), max_norm=cfg.train.clip, norm_type=1)
+
             optimizer.step()
             scheduler.step()
             
@@ -315,7 +321,7 @@ def train(cfg, writer, logger):
 
 
 if __name__ == "__main__":
-    cfg = args.get_argparser('configs/psr_siamdiff_complex_s2.yml')
+    cfg = args.get_argparser('configs/psr_siamdiff_complex_c3.yml')
     del cfg.test
     torch.backends.cudnn.benchmark = True
     

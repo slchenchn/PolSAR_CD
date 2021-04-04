@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-03-11
-Last Modified: 2021-03-12
+Last Modified: 2021-04-03
 	content: 
 '''
 ''' 适用于变化检测的数据增广方式 '''
@@ -15,7 +15,9 @@ import torchvision.transforms.functional as tf
 import torchvision.transforms.functional_tensor as F_t
 import torch
 from PIL import Image, ImageOps
-import torch
+from torch import nn
+import torch.nn.functional as F
+
 
 class Compose(object):
     def __init__(self, augmentations):
@@ -33,6 +35,19 @@ class Compose(object):
         # file_a, file_b, label, mask = torch.from_numpy(file_a), torch.from_numpy(file_b), torch.from_numpy(label), torch.from_numpy(mask)
 
         return file_a, file_b, label, mask
+
+ 
+
+class Boxcar_smooth(object):
+    def __init__(self, kernel_size=3) -> None:
+        super().__init__()
+        self.kernel_size = kernel_size
+        self.kernel = torch.ones(kernel_size, kernel_size)/(kernel_size**2)
+        self.padding = int((kernel_size-1)/2)
+
+    def __call__(self, file):
+        return F.conv2d(file, self.kernel, bias=None, padding=self.padding)
+
 
 
 class RandomHorizontalFlip(object):
@@ -99,10 +114,16 @@ class RandomRotation(object):
         )
         # catted = torch.cat(file_a, file_b, label, mask, dim=)
 
-
 def _setup_angle(x):
     if isinstance(x, numbers.Number):
         x = [-x, x]
 
     return [float(d) for d in x]
 
+
+
+if __name__=='__main__':
+    a = torch.arange(16).reshape(1, 1, 4, 4)
+    f = Boxcar_smooth(3)
+    b = f(a)
+    print('done')

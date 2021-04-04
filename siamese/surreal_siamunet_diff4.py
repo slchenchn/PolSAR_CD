@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-04-01
+Last Modified: 2021-04-02
 '''
 
 
@@ -73,6 +73,7 @@ class surReal_SiamUnet_diff4(nn.Module):
         x12_1 = self.dist1(x11)
         
         x21 = self.proj21(self.conv21(x11))
+        # delete
         x21 = self.proj22(self.conv22(x21))
         x22_1 = self.dist2(x21)
         

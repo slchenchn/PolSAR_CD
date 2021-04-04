@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-03-12
-Last Modified: 2021-04-01
+Last Modified: 2021-04-02
 	content: 2021-03-15：添加 ComplexUpsample 类
 '''
 #!/usr/bin/env python3
@@ -77,21 +77,18 @@ class ComplexMaxPool2d(Module):
 
 class ComplexAvgPool2d(Module):
 
-    def __init__(self,kernel_size, stride= None, padding = 0,
-                 dilation = 1, return_indices = False, ceil_mode = False):
+    def __init__(self,kernel_size, stride= None, padding = 0, ceil_mode = False):
         super(ComplexAvgPool2d,self).__init__()
         self.kernel_size = kernel_size
         self.stride = stride
         self.padding = padding
-        self.dilation = dilation
         self.ceil_mode = ceil_mode
-        self.return_indices = return_indices
 
     def forward(self,input):
         return complex_avg_pool2d(input,kernel_size = self.kernel_size,
                                 stride = self.stride, padding = self.padding,
-                                dilation = self.dilation, ceil_mode = self.ceil_mode,
-                                return_indices = self.return_indices)
+                                ceil_mode = self.ceil_mode,
+                                )
 
 class ComplexReLU(Module):
     def __init__(self, inplace=False):

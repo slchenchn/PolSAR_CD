@@ -10,7 +10,7 @@ Last Modified: 2021-04-02
 # 如果将复数张量和实数张量进行 cat，后续的自动求导会出问题，最新的pytorch已经解决了，但是我用的这个版本还没
 # 将反卷积改成双线性上采样
 # 在网络的最开始添加 BN 层
-
+# 变成左边复数，右边实数的形式
 
 # Rodrigo Caye Daudt
 # https://rcdaudt.github.io/
@@ -19,11 +19,11 @@ Last Modified: 2021-04-02
 # import torch
 import torch.nn as nn
 import torchvision.models
-# import torch.nn.functional as F
+import torch.nn.functional as F
 # from torch.nn.modules.padding import ComplexReplicationPad2d
 from complexPytorch import *
 
-class complex_SiamUnet_diffv2(nn.Module):
+class complex_SiamUnet_diffv4(nn.Module):
     """SiamUnet_diff segmentation network."""
 
     def __init__(self, input_nbr, label_nbr, drop_p=0.2, channel_scale=0.5):
@@ -67,41 +67,41 @@ class complex_SiamUnet_diffv2(nn.Module):
         self.bn43 = NaiveComplexBatchNorm2d(int(128*channel_scale))
         self.do43 = ComplexDropout2d(drop_p)
 
-        self.upconv4 = ComplexUpsample(scale_factor=2, mode='bilinear')
-        self.conv43d = ComplexConv2d(int(256*channel_scale), int(128*channel_scale), kernel_size=3, padding=1)
-        self.bn43d = NaiveComplexBatchNorm2d(int(128*channel_scale))
-        self.do43d = ComplexDropout2d(drop_p)
-        self.conv42d = ComplexConv2d(int(128*channel_scale), int(128*channel_scale), kernel_size=3, padding=1)
-        self.bn42d = NaiveComplexBatchNorm2d(int(128*channel_scale))
-        self.do42d = ComplexDropout2d(drop_p)
-        self.conv41d = ComplexConv2d(int(128*channel_scale), int(64*channel_scale), kernel_size=3, padding=1)
-        self.bn41d = NaiveComplexBatchNorm2d(int(64*channel_scale))
-        self.do41d = ComplexDropout2d(drop_p)
+        self.upconv4 = nn.Upsample(scale_factor=2, mode='bilinear')
+        self.conv43d = nn.Conv2d(int(256*channel_scale), int(128*channel_scale), kernel_size=3, padding=1)
+        self.bn43d = nn.BatchNorm2d(int(128*channel_scale))
+        self.do43d = nn.Dropout2d(drop_p)
+        self.conv42d = nn.Conv2d(int(128*channel_scale), int(128*channel_scale), kernel_size=3, padding=1)
+        self.bn42d = nn.BatchNorm2d(int(128*channel_scale))
+        self.do42d = nn.Dropout2d(drop_p)
+        self.conv41d = nn.Conv2d(int(128*channel_scale), int(64*channel_scale), kernel_size=3, padding=1)
+        self.bn41d = nn.BatchNorm2d(int(64*channel_scale))
+        self.do41d = nn.Dropout2d(drop_p)
 
-        self.upconv3 = ComplexUpsample(scale_factor=2, mode='bilinear')
-        self.conv33d = ComplexConv2d(int(128*channel_scale), int(64*channel_scale), kernel_size=3, padding=1)
-        self.bn33d = NaiveComplexBatchNorm2d(int(64*channel_scale))
-        self.do33d = ComplexDropout2d(drop_p)
-        self.conv32d = ComplexConv2d(int(64*channel_scale), int(64*channel_scale), kernel_size=3, padding=1)
-        self.bn32d = NaiveComplexBatchNorm2d(int(64*channel_scale))
-        self.do32d = ComplexDropout2d(drop_p)
-        self.conv31d = ComplexConv2d(int(64*channel_scale), int(32*channel_scale), kernel_size=3, padding=1)
-        self.bn31d = NaiveComplexBatchNorm2d(int(32*channel_scale))
-        self.do31d = ComplexDropout2d(drop_p)
+        self.upconv3 = nn.Upsample(scale_factor=2, mode='bilinear')
+        self.conv33d = nn.Conv2d(int(128*channel_scale), int(64*channel_scale), kernel_size=3, padding=1)
+        self.bn33d = nn.BatchNorm2d(int(64*channel_scale))
+        self.do33d = nn.Dropout2d(drop_p)
+        self.conv32d = nn.Conv2d(int(64*channel_scale), int(64*channel_scale), kernel_size=3, padding=1)
+        self.bn32d = nn.BatchNorm2d(int(64*channel_scale))
+        self.do32d = nn.Dropout2d(drop_p)
+        self.conv31d = nn.Conv2d(int(64*channel_scale), int(32*channel_scale), kernel_size=3, padding=1)
+        self.bn31d = nn.BatchNorm2d(int(32*channel_scale))
+        self.do31d = nn.Dropout2d(drop_p)
 
-        self.upconv2 = ComplexUpsample(scale_factor=2, mode='bilinear')
-        self.conv22d = ComplexConv2d(int(64*channel_scale), int(32*channel_scale), kernel_size=3, padding=1)
-        self.bn22d = NaiveComplexBatchNorm2d(int(32*channel_scale))
-        self.do22d = ComplexDropout2d(drop_p)
-        self.conv21d = ComplexConv2d(int(32*channel_scale), int(16*channel_scale), kernel_size=3, padding=1)
-        self.bn21d = NaiveComplexBatchNorm2d(int(16*channel_scale))
-        self.do21d = ComplexDropout2d(drop_p)
+        self.upconv2 = nn.Upsample(scale_factor=2, mode='bilinear')
+        self.conv22d = nn.Conv2d(int(64*channel_scale), int(32*channel_scale), kernel_size=3, padding=1)
+        self.bn22d = nn.BatchNorm2d(int(32*channel_scale))
+        self.do22d = nn.Dropout2d(drop_p)
+        self.conv21d = nn.Conv2d(int(32*channel_scale), int(16*channel_scale), kernel_size=3, padding=1)
+        self.bn21d = nn.BatchNorm2d(int(16*channel_scale))
+        self.do21d = nn.Dropout2d(drop_p)
 
-        self.upconv1 = ComplexUpsample(scale_factor=2, mode='bilinear')
-        self.conv12d = ComplexConv2d(int(32*channel_scale), int(16*channel_scale), kernel_size=3, padding=1)
-        self.bn12d = NaiveComplexBatchNorm2d(int(16*channel_scale))
-        self.do12d = ComplexDropout2d(drop_p)
-        self.conv11d = ComplexConv2d(int(16*channel_scale), label_nbr, kernel_size=3, padding=1)
+        self.upconv1 = nn.Upsample(scale_factor=2, mode='bilinear')
+        self.conv12d = nn.Conv2d(int(32*channel_scale), int(16*channel_scale), kernel_size=3, padding=1)
+        self.bn12d = nn.BatchNorm2d(int(16*channel_scale))
+        self.do12d = nn.Dropout2d(drop_p)
+        self.conv11d = nn.Conv2d(int(16*channel_scale), label_nbr, kernel_size=3, padding=1)
 
         # self.sm = nn.LogSoftmax(dim=1)
 
@@ -162,32 +162,32 @@ class complex_SiamUnet_diffv2(nn.Module):
         x4p = complex_avg_pool2d(x43_2, kernel_size=2, stride=2)
 
         # Stage 4d
-        x4d = self.upconv4(x4p)
-        x4d = torch.cat((x4d, torch.abs(x43_1 - x43_2).type(torch.complex64)), 1)
+        x4d = self.upconv4(x4p.real)
+        x4d = torch.cat((x4d, torch.abs(x43_1 - x43_2)), 1)
         # torch.norm(x4d.abs()).backward()
-        x43d = self.do43d(complex_relu(self.bn43d(self.conv43d(x4d))))
-        x42d = self.do42d(complex_relu(self.bn42d(self.conv42d(x43d))))
-        x41d = self.do41d(complex_relu(self.bn41d(self.conv41d(x42d))))
+        x43d = self.do43d(F.relu(self.bn43d(self.conv43d(x4d))))
+        x42d = self.do42d(F.relu(self.bn42d(self.conv42d(x43d))))
+        x41d = self.do41d(F.relu(self.bn41d(self.conv41d(x42d))))
 
         # Stage 3d
         x3d = self.upconv3(x41d)
-        x3d = torch.cat((x3d, torch.abs(x33_1 - x33_2).type(torch.complex64)), 1)
-        x33d = self.do33d(complex_relu(self.bn33d(self.conv33d(x3d))))
-        x32d = self.do32d(complex_relu(self.bn32d(self.conv32d(x33d))))
-        x31d = self.do31d(complex_relu(self.bn31d(self.conv31d(x32d))))
+        x3d = torch.cat((x3d, torch.abs(x33_1 - x33_2)), 1)
+        x33d = self.do33d(F.relu(self.bn33d(self.conv33d(x3d))))
+        x32d = self.do32d(F.relu(self.bn32d(self.conv32d(x33d))))
+        x31d = self.do31d(F.relu(self.bn31d(self.conv31d(x32d))))
 
         # Stage 2d
         x2d = self.upconv2(x31d)
-        x2d = torch.cat((x2d, torch.abs(x22_1 - x22_2).type(torch.complex64)), 1)
-        x22d = self.do22d(complex_relu(self.bn22d(self.conv22d(x2d))))
-        x21d = self.do21d(complex_relu(self.bn21d(self.conv21d(x22d))))
+        x2d = torch.cat((x2d, torch.abs(x22_1 - x22_2)), 1)
+        x22d = self.do22d(F.relu(self.bn22d(self.conv22d(x2d))))
+        x21d = self.do21d(F.relu(self.bn21d(self.conv21d(x22d))))
 
         # Stage 1d
         x1d = self.upconv1(x21d)
-        x1d = torch.cat((x1d, torch.abs(x12_1 - x12_2).type(torch.complex64)), 1)
-        x12d = self.do12d(complex_relu(self.bn12d(self.conv12d(x1d))))
+        x1d = torch.cat((x1d, torch.abs(x12_1 - x12_2)), 1)
+        x12d = self.do12d(F.relu(self.bn12d(self.conv12d(x1d))))
         x11d = self.conv11d(x12d)
 
-        return x11d.real
+        return x11d
         # return self.sm(x11d)
 

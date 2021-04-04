@@ -1,6 +1,6 @@
 # data in polar coordinate
 model:
-    arch: surreal_siam_diff5
+    arch: surreal_siam_diff6
     input_nbr: 4
     drop_p: 0
     # channel_scale: 0.25

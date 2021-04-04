@@ -10,31 +10,31 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from complexPytorch.complexLayers import *
-class ASPP(nn.Module):
-    def __init__(self, num_classes, channel_scale=1.0):
-        super(ASPP, self).__init__()
+class complex_ASPP(nn.Module):
+    def __init__(self, num_classes, channel_scale=0.25):
+        super().__init__()
 
-        self.conv_1x1_1 = nn.Conv2d(int(channel_scale*512), int(channel_scale*256), kernel_size=1)
-        self.bn_conv_1x1_1 = nn.BatchNorm2d(int(channel_scale*256))
+        self.conv_1x1_1 = ComplexConv2d(int(channel_scale*512), int(channel_scale*256), kernel_size=1)
+        self.bn_conv_1x1_1 = NaiveComplexBatchNorm2d(int(channel_scale*256))
 
-        self.conv_3x3_1 = nn.Conv2d(int(channel_scale*512), int(channel_scale*256), kernel_size=3, stride=1, padding=6, dilation=6)
-        self.bn_conv_3x3_1 = nn.BatchNorm2d(int(channel_scale*256))
+        self.conv_3x3_1 = ComplexConv2d(int(channel_scale*512), int(channel_scale*256), kernel_size=3, stride=1, padding=6, dilation=6)
+        self.bn_conv_3x3_1 = NaiveComplexBatchNorm2d(int(channel_scale*256))
 
-        self.conv_3x3_2 = nn.Conv2d(int(channel_scale*512), int(channel_scale*256), kernel_size=3, stride=1, padding=12, dilation=12)
-        self.bn_conv_3x3_2 = nn.BatchNorm2d(int(channel_scale*256))
+        self.conv_3x3_2 = ComplexConv2d(int(channel_scale*512), int(channel_scale*256), kernel_size=3, stride=1, padding=12, dilation=12)
+        self.bn_conv_3x3_2 = NaiveComplexBatchNorm2d(int(channel_scale*256))
 
-        self.conv_3x3_3 = nn.Conv2d(int(channel_scale*512), int(channel_scale*256), kernel_size=3, stride=1, padding=18, dilation=18)
-        self.bn_conv_3x3_3 = nn.BatchNorm2d(int(channel_scale*256))
+        self.conv_3x3_3 = ComplexConv2d(int(channel_scale*512), int(channel_scale*256), kernel_size=3, stride=1, padding=18, dilation=18)
+        self.bn_conv_3x3_3 = NaiveComplexBatchNorm2d(int(channel_scale*256))
 
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
 
-        self.conv_1x1_2 = nn.Conv2d(int(channel_scale*512), int(channel_scale*256), kernel_size=1)
-        self.bn_conv_1x1_2 = nn.BatchNorm2d(int(channel_scale*256))
+        self.conv_1x1_2 = ComplexConv2d(int(channel_scale*512), int(channel_scale*256), kernel_size=1)
+        self.bn_conv_1x1_2 = NaiveComplexBatchNorm2d(int(channel_scale*256))
 
-        self.conv_1x1_3 = nn.Conv2d(int(channel_scale*1280), int(channel_scale*256), kernel_size=1) # (1280 = 5*256)
-        self.bn_conv_1x1_3 = nn.BatchNorm2d(int(channel_scale*256))
+        self.conv_1x1_3 = ComplexConv2d(int(channel_scale*1280), int(channel_scale*256), kernel_size=1) # (1280 = 5*256)
+        self.bn_conv_1x1_3 = NaiveComplexBatchNorm2d(int(channel_scale*256))
 
-        self.conv_1x1_4 = nn.Conv2d(int(channel_scale*256), num_classes, kernel_size=1)
+        self.conv_1x1_4 = ComplexConv2d(int(channel_scale*256), num_classes, kernel_size=1)
 
     def forward(self, feature_map):
         # (feature_map has shape (batch_size, 512, h/16, w/16)) (assuming self.resnet is ResNet18_OS16 or ResNet34_OS16. If self.resnet instead is ResNet18_OS8 or ResNet34_OS8, it will be (batch_size, 512, h/8, w/8))
@@ -61,27 +61,27 @@ class ASPP_Bottleneck(nn.Module):
     def __init__(self, num_classes):
         super(ASPP_Bottleneck, self).__init__()
 
-        self.conv_1x1_1 = nn.Conv2d(4*512, 256, kernel_size=1)
-        self.bn_conv_1x1_1 = nn.BatchNorm2d(256)
+        self.conv_1x1_1 = ComplexConv2d(4*512, 256, kernel_size=1)
+        self.bn_conv_1x1_1 = NaiveComplexBatchNorm2d(256)
 
-        self.conv_3x3_1 = nn.Conv2d(4*512, 256, kernel_size=3, stride=1, padding=6, dilation=6)
-        self.bn_conv_3x3_1 = nn.BatchNorm2d(256)
+        self.conv_3x3_1 = ComplexConv2d(4*512, 256, kernel_size=3, stride=1, padding=6, dilation=6)
+        self.bn_conv_3x3_1 = NaiveComplexBatchNorm2d(256)
 
-        self.conv_3x3_2 = nn.Conv2d(4*512, 256, kernel_size=3, stride=1, padding=12, dilation=12)
-        self.bn_conv_3x3_2 = nn.BatchNorm2d(256)
+        self.conv_3x3_2 = ComplexConv2d(4*512, 256, kernel_size=3, stride=1, padding=12, dilation=12)
+        self.bn_conv_3x3_2 = NaiveComplexBatchNorm2d(256)
 
-        self.conv_3x3_3 = nn.Conv2d(4*512, 256, kernel_size=3, stride=1, padding=18, dilation=18)
-        self.bn_conv_3x3_3 = nn.BatchNorm2d(256)
+        self.conv_3x3_3 = ComplexConv2d(4*512, 256, kernel_size=3, stride=1, padding=18, dilation=18)
+        self.bn_conv_3x3_3 = NaiveComplexBatchNorm2d(256)
 
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
 
-        self.conv_1x1_2 = nn.Conv2d(4*512, 256, kernel_size=1)
-        self.bn_conv_1x1_2 = nn.BatchNorm2d(256)
+        self.conv_1x1_2 = ComplexConv2d(4*512, 256, kernel_size=1)
+        self.bn_conv_1x1_2 = NaiveComplexBatchNorm2d(256)
 
-        self.conv_1x1_3 = nn.Conv2d(1280, 256, kernel_size=1) # (1280 = 5*256)
-        self.bn_conv_1x1_3 = nn.BatchNorm2d(256)
+        self.conv_1x1_3 = ComplexConv2d(1280, 256, kernel_size=1) # (1280 = 5*256)
+        self.bn_conv_1x1_3 = NaiveComplexBatchNorm2d(256)
 
-        self.conv_1x1_4 = nn.Conv2d(256, num_classes, kernel_size=1)
+        self.conv_1x1_4 = ComplexConv2d(256, num_classes, kernel_size=1)
 
     def forward(self, feature_map):
         # (feature_map has shape (batch_size, 4*512, h/16, w/16))
