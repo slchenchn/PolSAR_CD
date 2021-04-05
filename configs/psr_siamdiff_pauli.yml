@@ -2,7 +2,7 @@ model:
     arch: siam_deeplabv3_diff
     input_nbr: 3
     drop_p: 0
-    channel_scale: 0.25
+    channel_scale: 0.125
     pretrained: False
 data:
     dataloader: PolSAR_CD_base
@@ -13,7 +13,7 @@ data:
     format: pauli
     path: /data/csl/SAR_CD/GF3
     norm: False
-    use_perc: 0.25
+    use_perc: 1
 train:
     augment: 
         'hflip': 0.5
@@ -28,7 +28,7 @@ train:
         name: 'adam'    
         # name: 'sgd'
         # lr: 1.0e-2
-        lr: 1.0e-3
+        lr: 1.0e-4
         weight_decay: 1.0e-5
         # momentum: 0.99
 

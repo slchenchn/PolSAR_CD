@@ -1,7 +1,7 @@
 model:
     arch: complex_siam_deeplabv3_diff
     input_nbr: 6
-    channel_scale: 1
+    channel_scale: 0.125
     pretrained: False
 data:
     dataloader: PolSAR_CD_base
@@ -26,7 +26,7 @@ train:
     optimizer:
         name: 'adam'    
         # name: 'sgd'
-        lr: 1.0e-4
+        lr: 1.0e-5
         # lr: 5.0e-4
         weight_decay: 1.0e-5
         # momentum: 0.9

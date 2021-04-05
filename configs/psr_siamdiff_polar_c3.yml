@@ -1,7 +1,7 @@
 model:
     arch: surreal_siam_deeplabv3_diff
     input_nbr: 6    
-    channel_scale: 0.25
+    channel_scale: 1
     pretrained: False
 data:
     dataloader: PolSAR_CD_base
@@ -17,7 +17,7 @@ train:
         'hflip': 0.5
         'vflip': 0.5
         # 'rotate': 180
-    epoch: 400
+    epoch: 100
     batch_size: 4
     val_interval: 30
     n_workers: 4
@@ -25,7 +25,7 @@ train:
     optimizer:
         name: 'adam'    
         # name: 'sgd'
-        lr: 1.0e-4
+        lr: 1.0e-3
         # lr: 5.0e-4
         weight_decay: 1.0e-5
         # momentum: 0.9
@@ -44,7 +44,7 @@ train:
     # resume: runs/siam-diff_cross_entropy_mask_sgd_poly_lr_chen_15//siam-diff_SAR_CD_intensity_best_model.pkl
     # resume: runs/fresunet_cross_entropy_mask_adam_constant_lr_1/fresunet_SAR_CD_intensity_last_model.pkl
     resume: 
-    clip: 20
+    clip: False
 test:
     out_path: 'result'
     pth: 'runs/surreal_siam_diff3_cross_entropy_mask_sgd_poly_lr_chen_0/surreal_siam_diff3_PolSAR_CD_base_best_model.pkl'
