@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-04-03
+Last Modified: 2021-04-12
 	content: 
 '''
 ''' 
@@ -203,13 +203,13 @@ def train(cfg, writer, logger):
             loss = loss_fn(input=outputs, target=label, mask=mask)
             loss.backward()
             
-            grads = []
-            for param in model.parameters():
-                grads.append(param.grad.view(-1))
-            grads = torch.cat(grads)
-            grads = torch.abs(grads)
-            grads_total_norm = tt.get_params_norm(model.parameters(), norm_type=1)
-            writer.add_scalars('grads/unnormed', {'mean': grads.mean(), 'max':grads.max(), 'total':grads_total_norm}, it)
+            # grads = []
+            # for param in model.parameters():
+            #     grads.append(param.grad.view(-1))
+            # grads = torch.cat(grads)
+            # grads = torch.abs(grads)
+            # grads_total_norm = tt.get_params_norm(model.parameters(), norm_type=1)
+            # writer.add_scalars('grads/unnormed', {'mean': grads.mean(), 'max':grads.max(), 'total':grads_total_norm}, it)
 
             # logger.info(f'max grad: {grads.max()}, mean grad: {grads.mean()}')
             # print('conv11: ', model.conv11.weight.grad, model.conv11.weight.grad.shape)
@@ -221,13 +221,13 @@ def train(cfg, writer, logger):
             if cfg.train.clip:
                 nn.utils.clip_grad_norm_(model.parameters(), max_norm=cfg.train.clip, norm_type=1)
 
-            grads = []
-            for param in model.parameters():
-                grads.append(param.grad.view(-1))
-            grads = torch.cat(grads)
-            grads = torch.abs(grads)
-            grads_total_norm = tt.get_params_norm(model.parameters(), norm_type=1)
-            writer.add_scalars('grads/normed', {'mean': grads.mean(), 'max':grads.max(), 'total':grads_total_norm}, it)
+            # grads = []
+            # for param in model.parameters():
+            #     grads.append(param.grad.view(-1))
+            # grads = torch.cat(grads)
+            # grads = torch.abs(grads)
+            # grads_total_norm = tt.get_params_norm(model.parameters(), norm_type=1)
+            # writer.add_scalars('grads/normed', {'mean': grads.mean(), 'max':grads.max(), 'total':grads_total_norm}, it)
 
             optimizer.step()
             scheduler.step()
@@ -284,6 +284,9 @@ def train(cfg, writer, logger):
                 # writer.add_scalar('lr', lr_now, it+1)
 
                 logger.info('0: {:.4f}\n1:{:.4f}'.format(val_cls_0_acc, val_cls_1_acc))
+                micro_OA = score['Overall_Acc']
+                miou = score['Mean_IoU']
+                logger.info(f'overall acc: {micro_OA}, mean iou: {miou}')
                 writer.add_scalars('metrics/val', {'cls_0':val_cls_0_acc, 'cls_1':val_cls_1_acc}, it)
                 # writer.add_scalar('val_metrics/acc/cls_0', val_cls_0_acc, it)
                 # writer.add_scalar('val_metrics/acc/cls_1', val_cls_1_acc, it)

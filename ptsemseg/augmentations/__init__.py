@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-03-11
+Last Modified: 2021-04-11
 	content: 
 '''
 import logging
@@ -15,6 +15,7 @@ key2aug = {
            'hflip': RandomHorizontalFlip,
            'vflip': RandomVerticalFlip,
            'rotate': RandomRotation,
+           'boxcar': BoxcarSmooth,
         #    'gamma': AdjustGamma,
         #    'hue': AdjustHue,
         #    'brightness': AdjustBrightness,

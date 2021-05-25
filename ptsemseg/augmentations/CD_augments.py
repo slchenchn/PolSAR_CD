@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2021-03-11
-Last Modified: 2021-04-03
+Last Modified: 2021-04-11
 	content: 
 '''
 ''' 适用于变化检测的数据增广方式 '''
@@ -9,15 +9,21 @@ Last Modified: 2021-04-03
 import math
 import numbers
 import random
+
 import numpy as np
+from numpy import ndarray
+from PIL import Image, ImageOps
 import torchvision.transforms as tt
 import torchvision.transforms.functional as tf
 import torchvision.transforms.functional_tensor as F_t
 import torch
-from PIL import Image, ImageOps
 from torch import nn
 import torch.nn.functional as F
+from scipy import ndimage
+from scipy import misc
+import cv2
 
+import mylib.polSAR_utils as psr
 
 class Compose(object):
     def __init__(self, augmentations):
@@ -36,18 +42,24 @@ class Compose(object):
 
         return file_a, file_b, label, mask
 
- 
 
-class Boxcar_smooth(object):
-    def __init__(self, kernel_size=3) -> None:
+class BoxcarSmooth(object):
+    ''' boxcar smoothings '''
+    def __init__(self, kernel_size=3, p=0.5) -> None:
         super().__init__()
+        self.p = p
         self.kernel_size = kernel_size
-        self.kernel = torch.ones(kernel_size, kernel_size)/(kernel_size**2)
-        self.padding = int((kernel_size-1)/2)
 
-    def __call__(self, file):
-        return F.conv2d(file, self.kernel, bias=None, padding=self.padding)
-
+    def __call__(self, file_a, file_b, label, mask):
+        # assume the file has [channel, height, width] dimension
+        if random.random()<self.p:
+            ff_a_r = torch.from_numpy(ndimage.uniform_filter(file_a.real, (0, self.kernel_size, self.kernel_size), mode='mirror'))
+            ff_a_i = torch.from_numpy(ndimage.uniform_filter(file_a.imag, (0, self.kernel_size, self.kernel_size), mode='mirror'))
+            ff_b_r = torch.from_numpy(ndimage.uniform_filter(file_b.real, (0, self.kernel_size, self.kernel_size), mode='mirror'))
+            ff_b_i = torch.from_numpy(ndimage.uniform_filter(file_b.imag, (0, self.kernel_size, self.kernel_size), mode='mirror'))
+            return ff_a_r+1j*ff_a_i, ff_b_r+1j*ff_b_i, label, mask
+        else:
+            return file_a, file_b, label, mask
 
 
 class RandomHorizontalFlip(object):
@@ -121,9 +133,63 @@ def _setup_angle(x):
     return [float(d) for d in x]
 
 
+class WishartNoise(object):
+    ''' Generate Wishart distribution noise according to specified number of looks '''
+    def __init__(self, ENL) -> None:
+        super().__init__()
+        self.ENL = ENL
+    
+    def __call__(self, file_a, file_b, label, mask) :
+        # assume the file has [channel, height, width] dimension
+        # file_a and file_b should have ENL>3
+        c, h, w = file_a.shape
+        if c==6:
+            ori_format = 'complex_vector_6'
+        elif c==9:
+            ori_format = 'complex_vector_9'
+        else:
+            raise NotImplementedError
+
+        file_a = psr.as_format(file_a, 'complex_vector_9')
+        file_b = psr.as_format(file_b, 'complex_vector_9')
+        file_a = psr.wishart_noise(file_a.reshape(3, 3, -1), ENL=self.ENL).reshape(9, h, w)
+        file_b = psr.wishart_noise(file_b.reshape(3, 3, -1), ENL=self.ENL).reshape(9, h, w)
+        file_a = psr.as_format(file_a, ori_format)
+        file_b = psr.as_format(file_b, ori_format)
+
+        return torch.from_numpy(file_a), torch.from_numpy(file_b), label, mask
+
 
 if __name__=='__main__':
-    a = torch.arange(16).reshape(1, 1, 4, 4)
-    f = Boxcar_smooth(3)
-    b = f(a)
-    print('done')
+    ''' test WishartNoise() '''
+    path_a = r'data/GF3/data/E115_N39_中国河北/降轨/1/20161209'
+    path_b = r'data/GF3/data/E115_N39_中国河北/降轨/1/20170306'
+    file_a = psr.read_c3(path_a)
+    file_b = psr.read_c3(path_b)
+
+    # boxcar smoothing
+    b = BoxcarSmooth(3)
+    file_a, file_b, _, _ = b(file_a, file_b, None, None)
+    ba = psr.rgb_by_c3(file_a)
+    bb = psr.rgb_by_c3(file_b)
+    cv2.imwrite('/home/csl/code/PolSAR_CD/tmp/ba.png', cv2.cvtColor((255*ba).astype(np.uint8), cv2.COLOR_RGB2BGR))
+    cv2.imwrite('/home/csl/code/PolSAR_CD/tmp/bb.png', cv2.cvtColor((255*bb).astype(np.uint8), cv2.COLOR_RGB2BGR))
+
+    # generate Wishart noise
+    w = WishartNoise(3)
+    file_a, file_b, _, _ = w(file_a, file_b, None, None)
+    pa = psr.rgb_by_c3(file_a)
+    pb = psr.rgb_by_c3(file_b)
+    cv2.imwrite('/home/csl/code/PolSAR_CD/tmp/wa.png', cv2.cvtColor((255*pa).astype(np.uint8), cv2.COLOR_RGB2BGR))
+    cv2.imwrite('/home/csl/code/PolSAR_CD/tmp/wb.png', cv2.cvtColor((255*pb).astype(np.uint8), cv2.COLOR_RGB2BGR))
+    
+
+
+
+    ''' test BoxcarSmooth() '''
+    # a = torch.arange(32, dtype=float).reshape(2, 4, 4)
+    # f = BoxcarSmooth(3)
+    # b = f(a)
+    # print(a)
+    # print(b)
+    # print('done')

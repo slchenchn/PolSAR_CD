@@ -1,7 +1,7 @@
 '''
 Author: Shuailin Chen
 Created Date: 2020-11-27
-Last Modified: 2021-04-02
+Last Modified: 2021-04-12
 '''
 import os.path as osp
 import matplotlib.pyplot as plt
@@ -102,12 +102,15 @@ def test(cfg, logger, run_id):
         # acc_train = score_train['Acc']
         # acc_val = score_val['Acc']
         logger.info(f'acc : {acc}\tOA:{acc.mean()}')
+        micro_OA = score['Overall_Acc']
+        miou = score['Mean_IoU']
+        logger.info(f'overall acc: {micro_OA}, mean iou: {miou}')
         # logger.info(f'acc of train set: {acc_train} \nacc of val set: {acc_val}')
 
 
 
 if __name__=='__main__':
-    cfg = args.get_argparser('configs/psr_siamdiff_hoekman.yml')
+    cfg = args.get_argparser('configs/psr_siamdiff_pauli.yml')
     del cfg.train
     torch.backends.cudnn.benchmark = True
 

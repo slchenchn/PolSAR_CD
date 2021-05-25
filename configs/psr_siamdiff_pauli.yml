@@ -1,9 +1,9 @@
 model:
-    arch: siam_deeplabv3_diff
+    arch: siam-diffv2
     input_nbr: 3
     drop_p: 0
-    channel_scale: 0.125
-    pretrained: False
+    # channel_scale: 1
+    # pretrained: False
 data:
     dataloader: PolSAR_CD_base
     train_split: train2
@@ -18,8 +18,9 @@ train:
     augment: 
         'hflip': 0.5
         'vflip': 0.5
+        # 'boxcar': 3
         # 'rotate': 180       
-    epoch: 100
+    epoch: 80
     batch_size: 4
     val_interval: 30
     n_workers: 4
@@ -28,7 +29,7 @@ train:
         name: 'adam'    
         # name: 'sgd'
         # lr: 1.0e-2
-        lr: 1.0e-4
+        lr: 1.0e-3
         weight_decay: 1.0e-5
         # momentum: 0.99
 
@@ -42,16 +43,16 @@ train:
     lr: 
         name: 'constant_lr'
         # name: 'poly_lr_chen'
-        # max_iter: 2000
+        # max_iter: 1600
     # resume: runs/siam-diff_cross_entropy_mask_sgd_poly_lr_chen_15//siam-diff_SAR_CD_intensity_best_model.pkl
     # resume: runs/fresunet_cross_entropy_mask_adam_constant_lr_1/fresunet_SAR_CD_intensity_last_model.pkl
     resume: 
     clip: False
 test:
     out_path: 'result'
-    pth: 'runs/siam_deeplabv3_diff_cross_entropy_mask_adam_2/siam_deeplabv3_diff_PolSAR_CD_base_best_model.pkl'
+    pth: 'runs/siam-diffv2_cross_entropy_mask_adam_10/siam-diffv2_PolSAR_CD_base_best_model.pkl'
     gpu: [0]
     augments:
     batch_size: 1
     n_workers: 1
-    dataset: 'test'
+    dataset: 'val'
